@@ -1,12 +1,11 @@
-export default function Home() {
+import { Header } from '@/components/dashboard/header';
+import { Highlights } from '@/components/dashboard/highlights';
+
+export default function Dashboard() {
   return (
-    <main
-      className="flex min-h-screen items-center justify-center"
-      data-testid="home-page"
-    >
-      <p className="font-mono text-text-muted text-sm">
-        SD Portfolio — coming soon
-      </p>
+    <main className="relative z-[1] max-w-[1320px] mx-auto px-8 py-7 pb-20">
+      <Header />
+      <Highlights />
     </main>
   );
 }
