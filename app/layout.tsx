@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { DM_Sans, JetBrains_Mono, Press_Start_2P } from "next/font/google";
 import "./globals.css";
 
+import { DrillProvider } from "@/components/drill-through/drill-context";
+import { DrillPanel } from "@/components/drill-through/panel";
 import ExcelGrid from "@/components/ambient/excel-grid";
 import StatusBadge from "@/components/ambient/status-badge";
 import Clock from "@/components/ambient/clock";
@@ -45,7 +47,10 @@ export default function RootLayout({
       className={`${dmSans.variable} ${jetbrainsMono.variable} ${pressStart2P.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col font-body">
-        {children}
+        <DrillProvider>
+          {children}
+          <DrillPanel />
+        </DrillProvider>
 
         {/* ── Ambient decorations (rendered on every page) ── */}
         <ExcelGrid />
