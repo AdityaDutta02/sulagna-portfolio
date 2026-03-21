@@ -34,25 +34,25 @@ function AnimatedRow({
 
 export function DashboardGrid({ kpis }: DashboardGridProps) {
   return (
-    <div className="grid grid-cols-12 gap-4">
+    <section aria-label="Portfolio dashboard" className="grid grid-cols-12 gap-4">
       {/* Row 1: KPI tiles */}
       <AnimatedRow delay={0.25} className="contents">
         {kpis.map((kpi) => (
-          <KpiTile key={kpi.id} kpi={kpi} className="col-span-3" />
+          <KpiTile key={kpi.id} kpi={kpi} className="col-span-12 sm:col-span-6 lg:col-span-3" />
         ))}
       </AnimatedRow>
 
       {/* Row 2: Projects + Skills */}
       <AnimatedRow delay={0.55}>
-        <ProjectsTile className="col-span-8" />
-        <SkillsTile className="col-span-4" />
+        <ProjectsTile className="col-span-12 lg:col-span-8" />
+        <SkillsTile className="col-span-12 lg:col-span-4" />
       </AnimatedRow>
 
       {/* Row 3: Timeline + Contact */}
       <AnimatedRow delay={0.70}>
-        <TimelineTile className="col-span-8" />
-        <ContactTile className="col-span-4" />
+        <TimelineTile className="col-span-12 lg:col-span-8" />
+        <ContactTile className="col-span-12 lg:col-span-4" />
       </AnimatedRow>
-    </div>
+    </section>
   );
 }

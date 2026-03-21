@@ -82,7 +82,7 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
       {related.length > 0 && (
         <div className="mt-10">
           <div className="text-[10px] font-semibold uppercase tracking-widest mb-4" style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>Related Posts</div>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {related.map(p => <PostCard key={p.slug} post={p} />)}
           </div>
         </div>

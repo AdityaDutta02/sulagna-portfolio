@@ -49,13 +49,13 @@ export default function BlogIndex() {
       </div>
       <TopicFilter topics={topics} activeTopic={null} />
       <div className="grid grid-cols-12 gap-6">
-        <div className="col-span-8">
+        <div className="col-span-12 lg:col-span-8">
           {featured && <PostCard post={featured} featured />}
-          <div className="grid grid-cols-2 gap-4 mt-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
             {rest.map(post => <PostCard key={post.slug} post={post} />)}
           </div>
         </div>
-        <div className="col-span-4">
+        <div className="col-span-12 lg:col-span-4">
           <Sidebar posts={posts} topics={topics} />
         </div>
       </div>

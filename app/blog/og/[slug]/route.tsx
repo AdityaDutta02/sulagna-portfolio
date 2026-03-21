@@ -1,8 +1,6 @@
 import { ImageResponse } from '@vercel/og';
 import { getPostBySlug } from '@/lib/blog';
 
-export const runtime = 'edge';
-
 export async function GET(
   _req: Request,
   { params }: { params: Promise<{ slug: string }> }

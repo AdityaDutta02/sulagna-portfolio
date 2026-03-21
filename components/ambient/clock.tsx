@@ -36,6 +36,7 @@ export default function Clock() {
   return (
     <div
       aria-label={`Local time: ${time}`}
+      className="hidden md:flex"
       style={{
         position: "fixed",
         top: 28,
@@ -46,7 +47,6 @@ export default function Clock() {
         borderRadius: 8,
         boxShadow: "0 1px 6px rgba(0,0,0,0.06)",
         padding: "6px 10px",
-        display: "flex",
         flexDirection: "column",
         alignItems: "center",
         gap: 2,
