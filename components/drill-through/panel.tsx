@@ -12,25 +12,28 @@ export function DrillPanel() {
   return (
     <AnimatePresence>
       {isOpen && (
-        <>
+        <motion.div
+          key="drill-overlay"
+          className="fixed inset-0 z-[200]"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.35 }}
+        >
           {/* Backdrop overlay */}
-          <motion.div
-            className="fixed inset-0 z-[200]"
+          <div
+            className="absolute inset-0"
             style={{
               background: 'rgba(44,42,38,0.3)',
               backdropFilter: 'blur(8px)',
             }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.35 }}
             onClick={closeDrill}
             aria-hidden="true"
           />
 
           {/* Slide-in panel */}
           <motion.div
-            className="fixed top-0 right-0 bottom-0 z-[201] flex flex-col"
+            className="absolute top-0 right-0 bottom-0 z-[1] flex flex-col"
             style={{
               width: 'min(720px, 90vw)',
               background: 'var(--bg-card)',
@@ -110,7 +113,7 @@ export function DrillPanel() {
               )}
             </div>
           </motion.div>
-        </>
+        </motion.div>
       )}
     </AnimatePresence>
   );
