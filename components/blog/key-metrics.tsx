@@ -1,18 +1,37 @@
 interface KeyMetricsProps { dataPoints?: number; sources?: number; insightScore?: number; }
-const items = [
-  { key: 'dataPoints', label: 'DATA POINTS', colour: 'var(--amber)' },
-  { key: 'sources', label: 'SOURCES', colour: 'var(--blue)' },
-  { key: 'insightScore', label: 'INSIGHT SCORE', colour: 'var(--green)' },
-] as const;
+
+const metrics = [
+  { key: 'dataPoints' as const, label: 'Data Points', icon: '◆', colour: 'var(--amber)' },
+  { key: 'sources' as const, label: 'Sources', icon: '◇', colour: 'var(--blue)' },
+  { key: 'insightScore' as const, label: 'Insight Score', icon: '★', colour: 'var(--green)' },
+];
+
 export function KeyMetrics(props: KeyMetricsProps) {
-  const visible = items.filter(i => props[i.key] != null);
+  const visible = metrics.filter(m => props[m.key] != null);
   if (visible.length === 0) return null;
+
   return (
-    <div className="flex gap-4 p-3 rounded-lg mb-6" style={{ background: 'var(--bg)', border: '1px solid var(--border)' }}>
-      {visible.map(({ key, label, colour }) => (
-        <div key={key}>
-          <div className="text-[8px] uppercase tracking-widest mb-1" style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-dim)' }}>{label}</div>
-          <div className="text-lg font-bold" style={{ fontFamily: 'var(--font-mono)', color: colour }}>{key === 'insightScore' ? `${props[key]}/10` : `${props[key]}+`}</div>
+    <div
+      className="flex items-center gap-6 py-4 px-1 mb-8"
+      style={{ borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)' }}
+    >
+      {visible.map(({ key, label, icon, colour }) => (
+        <div key={key} className="flex items-center gap-2">
+          <span className="text-xs" style={{ color: colour }}>{icon}</span>
+          <div>
+            <div
+              className="text-lg font-bold leading-none"
+              style={{ fontFamily: 'var(--font-mono)', color: colour }}
+            >
+              {key === 'insightScore' ? `${props[key]}/10` : `${props[key]}+`}
+            </div>
+            <div
+              className="text-[9px] uppercase tracking-wider mt-0.5"
+              style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-dim)' }}
+            >
+              {label}
+            </div>
+          </div>
         </div>
       ))}
     </div>
