@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { profile } from '@/lib/data';
 import { PixelAvatar } from './pixel-avatar';
 import { TypingCursor } from './typing-cursor';
@@ -62,6 +63,7 @@ export function Header() {
           </span>
         ))}
       </div>
+      <Link href="/blog" className="text-[10px] no-underline transition-colors" style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-dim)' }}>Research Feed →</Link>
     </header>
   );
 }

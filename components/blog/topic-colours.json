@@ -1,0 +1,7 @@
+{
+  "machine-learning": { "bg": "var(--amber-glow)", "text": "var(--amber)" },
+  "data-analysis":    { "bg": "var(--blue-bg)",    "text": "var(--blue)"  },
+  "visualization":    { "bg": "var(--green-bg)",   "text": "var(--green)" },
+  "python":           { "bg": "var(--plum-bg)",    "text": "var(--plum)"  },
+  "sql":              { "bg": "var(--coral-bg)",   "text": "var(--coral)" }
+}
