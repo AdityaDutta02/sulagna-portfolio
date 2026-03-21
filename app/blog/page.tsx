@@ -5,15 +5,43 @@ import { TopicFilter } from '@/components/blog/topic-filter';
 import { Sidebar } from '@/components/blog/sidebar';
 import type { Metadata } from 'next';
 
-export const metadata: Metadata = { title: 'Data Science Insights' };
+export const metadata: Metadata = {
+  title: 'Data Science Insights',
+  alternates: { canonical: 'https://sulagna.dev/blog' },
+  openGraph: { images: [{ url: '/og', width: 1200, height: 630 }] },
+};
+
+const BASE_URL = 'https://sulagna.dev';
 
 export default function BlogIndex() {
   const posts = getAllPosts();
   const topics = getAllTopics();
   const featured = posts.find(p => p.featured);
   const rest = posts.filter(p => p !== featured);
+
+  // Static JSON-LD — derived from MDX frontmatter (title, slug, date), not user input
+  const blogJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Blog',
+    name: 'Sulagna Dey — Data Science Insights',
+    url: `${BASE_URL}/blog`,
+    description: 'Data science news, Power BI tutorials, and market intelligence analysis',
+    author: { '@type': 'Person', name: 'Sulagna Dey', url: BASE_URL },
+    hasPart: posts.slice(0, 10).map(post => ({
+      '@type': 'BlogPosting',
+      headline: post.title,
+      url: `${BASE_URL}/blog/${post.slug}`,
+      datePublished: post.date,
+    })),
+  };
+
   return (
     <main className="relative z-[1] max-w-[1320px] mx-auto px-8 py-7 pb-20">
+      {/* Static JSON-LD structured data — not user input, safe to render directly */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(blogJsonLd) }}
+      />
       <div className="flex items-center justify-between mb-6" style={{ position: 'sticky', top: 0, zIndex: 10, background: 'var(--bg)', paddingTop: '8px', paddingBottom: '8px' }}>
         <Link href="/" className="text-xs no-underline" style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>&larr; Back to Dashboard</Link>
         <div className="text-sm font-semibold" style={{ fontFamily: 'var(--font-mono)', color: 'var(--text)' }}>RESEARCH FEED</div>

@@ -1,0 +1,11 @@
+# Sulagna Dey — Data Analyst Portfolio & Blog
+> Data science insights, Power BI tutorials, and market intelligence analysis
+
+## Blog
+- [All Posts](/blog): Data science news, tutorials, and industry analysis
+- [Power BI](/blog/topic/power-bi): Dashboard design and DAX patterns
+- [Market Intel](/blog/topic/market-intelligence): Aluminium and commodity market insights
+- [Python](/blog/topic/python): Data automation and ML projects
+
+## Portfolio
+- [Dashboard](/): Interactive portfolio showcasing data analysis work

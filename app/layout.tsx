@@ -32,8 +32,18 @@ const pressStart2P = Press_Start_2P({
 });
 
 export const metadata: Metadata = {
-  title: "SD Portfolio",
-  description: "Interactive lofi-themed portfolio dashboard",
+  metadataBase: new URL('https://sulagna.dev'),
+  title: { default: 'Sulagna Dey — Data Analyst & Power BI Specialist', template: '%s | Sulagna Dey' },
+  description: 'Interactive dashboard portfolio showcasing data analysis, Power BI dashboards, and market intelligence work',
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: 'https://sulagna.dev',
+    siteName: 'Sulagna Dey',
+    images: [{ url: '/og', width: 1200, height: 630 }],
+  },
+  twitter: { card: 'summary_large_image' },
+  alternates: { canonical: 'https://sulagna.dev' },
 };
 
 export default function RootLayout({
