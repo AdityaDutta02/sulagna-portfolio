@@ -156,8 +156,7 @@ describe('contact', () => {
     expect(contact.resumePath).toMatch(/^\//);
   });
 
-  it('calendarLink is defined and non-empty', () => {
-    expect(typeof contact.calendarLink).toBe('string');
-    expect(contact.calendarLink.length).toBeGreaterThan(0);
+  it('does not have calendarLink (removed)', () => {
+    expect((contact as Record<string, unknown>).calendarLink).toBeUndefined();
   });
 });
