@@ -32,8 +32,8 @@ export function PostLayout({ children }: PostLayoutProps) {
         </Link>
       </nav>
 
-      {/* Article container */}
-      <div className="max-w-[680px] mx-auto px-5 sm:px-6 pt-10 pb-16">
+      {/* Article container — no-grid-bg hides the excel grid overlay */}
+      <div className="no-grid-bg max-w-[680px] mx-auto px-5 sm:px-6 pt-10 pb-16">
         {children}
       </div>
     </>

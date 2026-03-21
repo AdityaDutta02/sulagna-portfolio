@@ -330,11 +330,13 @@ body > * {
   margin: 1.5rem 0;
 }
 
-/* ── Mobile: hide grid overlay on small screens ──────────────────── */
+/* ── Hide grid overlay on small screens and on blog pages ────────── */
 @media (max-width: 767px) {
-  body::before {
-    display: none;
-  }
+  body::before { display: none; }
+}
+.no-grid-bg body::before,
+body:has(.no-grid-bg)::before {
+  display: none;
 }
 
 /* ── Accessibility ───────────────────────────────────────────────── */
