@@ -330,13 +330,18 @@ body > * {
   margin: 1.5rem 0;
 }
 
-/* ── Hide grid overlay on small screens and on blog pages ────────── */
+/* ── Hide grid overlay on small screens ──────────────────────────── */
 @media (max-width: 767px) {
   body::before { display: none; }
 }
-.no-grid-bg body::before,
-body:has(.no-grid-bg)::before {
-  display: none;
+/* Blog pages: cover the grid with a solid bg via their own overlay */
+.blog-page::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  z-index: 0;
+  pointer-events: none;
 }
 
 /* ── Accessibility ───────────────────────────────────────────────── */

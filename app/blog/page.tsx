@@ -36,7 +36,7 @@ export default function BlogIndex() {
   };
 
   return (
-    <main className="no-grid-bg relative z-[1] max-w-[1320px] mx-auto px-4 sm:px-8 py-7 pb-20">
+    <main className="relative z-[1] max-w-[1320px] mx-auto px-4 sm:px-8 py-7 pb-20">
       {/* Static JSON-LD structured data — not user input, safe to render directly */}
       <script
         type="application/ld+json"
