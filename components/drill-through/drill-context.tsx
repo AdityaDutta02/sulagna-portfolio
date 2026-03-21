@@ -1,5 +1,5 @@
 'use client';
-import { createContext, useCallback, useContext } from 'react';
+import React, { createContext, useCallback, useContext } from 'react';
 import { useEffect, useState, type ReactNode } from 'react';
 
 export type DrillState = {
@@ -24,7 +24,7 @@ interface DrillProviderProps {
 }
 
 /** Provides drill-through open/close state to the subtree. */
-export function DrillProvider({ children }: DrillProviderProps): JSX.Element {
+export function DrillProvider({ children }: DrillProviderProps): React.ReactElement {
   const [state, setState] = useState<DrillState>(INITIAL_STATE);
   const openDrill = useCallback((reportId: string) => {
     setState({ isOpen: true, reportId });
