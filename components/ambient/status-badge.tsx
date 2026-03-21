@@ -3,14 +3,14 @@
 export default function StatusBadge() {
   return (
     <div
+      className="hidden md:flex"
       style={{
         position: "fixed",
         bottom: 24,
         left: 28,
-        display: "flex",
         alignItems: "center",
         gap: 6,
-        zIndex: 10,
+        zIndex: 50,
         pointerEvents: "none",
       }}
     >

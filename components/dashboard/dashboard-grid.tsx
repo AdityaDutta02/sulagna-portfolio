@@ -14,7 +14,7 @@ interface DashboardGridProps {
 function AnimatedRow({
   delay,
   children,
-  className = 'col-span-12 grid grid-cols-12 gap-4',
+  className = 'col-span-12 grid grid-cols-12 gap-3',
 }: {
   delay: number;
   children: React.ReactNode;
@@ -34,7 +34,7 @@ function AnimatedRow({
 
 export function DashboardGrid({ kpis }: DashboardGridProps) {
   return (
-    <section aria-label="Portfolio dashboard" className="grid grid-cols-12 gap-4">
+    <section aria-label="Portfolio dashboard" className="grid grid-cols-12 gap-3">
       {/* Row 1: KPI tiles */}
       <AnimatedRow delay={0.25} className="contents">
         {kpis.map((kpi) => (

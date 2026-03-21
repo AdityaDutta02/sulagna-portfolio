@@ -281,14 +281,12 @@ export interface Contact {
   email: string;
   linkedin: string;
   resumePath: string;
-  calendarLink: string;
 }
 
 export const contact: Contact = {
   email: 'dey.sulagna01@gmail.com',
   linkedin: 'https://linkedin.com/in/sulagna-dey',
   resumePath: '/resume.pdf',
-  calendarLink: '#book',
 };
 
 // ─── Profile ─────────────────────────────────────────────────────────────────

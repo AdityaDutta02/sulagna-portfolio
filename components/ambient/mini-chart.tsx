@@ -15,14 +15,14 @@ export default function MiniChart() {
   return (
     <div
       aria-hidden="true"
+      className="hidden md:flex"
       style={{
         position: "fixed",
         bottom: 24,
         left: 80,
-        display: "flex",
         alignItems: "flex-end",
         gap: 2,
-        zIndex: 10,
+        zIndex: 50,
         opacity: 0.3,
         pointerEvents: "none",
       }}

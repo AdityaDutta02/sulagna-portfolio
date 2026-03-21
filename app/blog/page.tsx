@@ -42,7 +42,7 @@ export default function BlogIndex() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(blogJsonLd) }}
       />
-      <div className="flex items-center justify-between mb-6" style={{ position: 'sticky', top: 0, zIndex: 10, background: 'var(--bg)', paddingTop: '8px', paddingBottom: '8px' }}>
+      <div className="flex items-center justify-between mb-6 px-4 sm:px-8" style={{ position: 'sticky', top: 0, zIndex: 10, background: 'var(--bg)', backdropFilter: 'blur(8px)', paddingTop: '8px', paddingBottom: '8px' }}>
         <Link href="/" className="text-xs no-underline" style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>&larr; Back to Dashboard</Link>
         <div className="text-sm font-semibold" style={{ fontFamily: 'var(--font-mono)', color: 'var(--text)' }}>RESEARCH FEED</div>
         <div className="px-3 py-1.5 rounded-lg text-[10px]" style={{ fontFamily: 'var(--font-mono)', background: 'var(--bg-subtle)', border: '1px solid var(--border)', color: 'var(--text-dim)', cursor: 'default' }} title="Coming in v2">Search...</div>

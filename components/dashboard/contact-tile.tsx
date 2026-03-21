@@ -41,7 +41,7 @@ function ContactLink(props: ContactLinkProps) {
       href={href}
       target={newTab ? '_blank' : undefined}
       rel={newTab ? 'noopener noreferrer' : undefined}
-      className={`${colSpan ? 'col-span-2 ' : ''}flex items-center justify-center gap-1.5 rounded-lg border px-2.5 py-3 text-center no-underline transition-all duration-200 hover:-translate-y-0.5`}
+      className={`${colSpan ? 'col-span-2 ' : ''}flex flex-1 items-center justify-center gap-1.5 rounded-lg border px-2.5 py-3 text-center no-underline transition-all duration-200 hover:-translate-y-0.5`}
       style={{ ...baseStyle, fontSize: '11px', fontWeight: primary ? 600 : 500 }}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
@@ -78,27 +78,38 @@ export function ContactTile({ className = '' }: ContactTileProps) {
         Transmit
       </div>
 
-      {/* Button grid */}
-      <div className="grid grid-cols-2 gap-2 mt-1">
-        <ContactLink
-          href={contact.calendarLink}
-          label="Book a Call"
-          colSpan
-          primary
-          testId="contact-book-call"
-        />
+      {/* Desktop: horizontal pill layout */}
+      <div className="hidden lg:flex items-center gap-2 mt-1">
         <ContactLink href={contact.resumePath} label="Resume" testId="contact-resume" />
         <ContactLink
           href={contact.linkedin}
           label="LinkedIn"
           newTab
+          primary
           testId="contact-linkedin"
+        />
+        <ContactLink
+          href={`mailto:${contact.email}`}
+          label="Email"
+          testId="contact-email"
+        />
+      </div>
+
+      {/* Mobile: stacked grid layout */}
+      <div className="grid grid-cols-2 gap-2 mt-1 lg:hidden">
+        <ContactLink href={contact.resumePath} label="Resume" testId="contact-resume-mobile" />
+        <ContactLink
+          href={contact.linkedin}
+          label="LinkedIn"
+          newTab
+          primary
+          testId="contact-linkedin-mobile"
         />
         <ContactLink
           href={`mailto:${contact.email}`}
           label={contact.email}
           colSpan
-          testId="contact-email"
+          testId="contact-email-mobile"
         />
       </div>
     </div>

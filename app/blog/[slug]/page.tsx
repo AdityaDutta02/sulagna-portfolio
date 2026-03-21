@@ -68,9 +68,9 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
         </div>
         <ShareButtons title={post.title} />
       </div>
-      <h1 className="text-2xl font-bold mb-4" style={{ fontFamily: 'var(--font-mono)', color: 'var(--text)' }}>{post.title}</h1>
+      <h1 className="text-2xl md:text-3xl font-bold mb-4" style={{ fontFamily: 'var(--font-mono)', color: 'var(--text)' }}>{post.title}</h1>
       <KeyMetrics dataPoints={post.dataPoints} sources={post.sources} insightScore={post.insightScore} />
-      <article className="prose-custom" style={{ fontSize: '15px', color: 'var(--text)', lineHeight: 1.8 }}>
+      <article className="prose-custom mt-6" style={{ fontSize: '16px', color: 'var(--text)', lineHeight: 1.9 }}>
         <MDXRemote source={post.content} components={mdxComponents} />
       </article>
       <div className="flex flex-wrap gap-1.5 mt-6 mb-4">
@@ -81,6 +81,7 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
       <AuthorCard />
       {related.length > 0 && (
         <div className="mt-10">
+          <div className="border-t mb-6" style={{ borderColor: 'var(--border)' }} />
           <div className="text-[10px] font-semibold uppercase tracking-widest mb-4" style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>Related Posts</div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {related.map(p => <PostCard key={p.slug} post={p} />)}

@@ -16,7 +16,7 @@ const child = {
 export function Highlights() {
   return (
     <motion.div
-      className="flex flex-wrap gap-1.5 mb-6"
+      className="flex flex-wrap gap-1.5 mb-3"
       variants={container}
       initial="hidden"
       animate="visible"

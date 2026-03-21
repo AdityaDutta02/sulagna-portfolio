@@ -65,8 +65,70 @@ export function TimelineTile({ className = '' }: TimelineTileProps) {
         Career Journey
       </div>
 
-      {/* Git-commit graph */}
-      <div className="relative mt-2" style={{ paddingLeft: '28px' }}>
+      {/* Desktop: horizontal compact timeline */}
+      <div className="hidden lg:flex items-start gap-0 relative mt-3">
+        {/* Horizontal connecting line */}
+        <div
+          className="absolute top-[10px] left-6 right-6 h-[2px]"
+          style={{
+            background:
+              'linear-gradient(90deg, var(--green), var(--amber), var(--blue), var(--coral), var(--amber))',
+          }}
+        />
+        {timeline.map((node) => (
+          <div
+            key={node.role}
+            className="flex-1 flex flex-col items-center relative z-[1] px-1"
+            data-testid={`timeline-node-desktop-${node.role}`}
+          >
+            <div
+              className="w-3 h-3 rounded-full border-[3px]"
+              style={{
+                background: node.colour,
+                borderColor: 'var(--bg-card)',
+                boxShadow: `0 0 0 2px ${node.colour}`,
+              }}
+            />
+            <div
+              className="text-[8px] font-semibold mt-2 text-center"
+              style={{ fontFamily: 'var(--font-mono)', color: node.colour }}
+            >
+              {node.date}
+            </div>
+            <div
+              className="text-[11px] font-bold text-center mt-0.5"
+              style={{ color: node.isActive ? 'var(--amber)' : 'var(--text)' }}
+            >
+              {node.role}
+            </div>
+            {node.org && (
+              <div className="text-[9px] text-center" style={{ color: 'var(--text-muted)' }}>
+                {node.org}
+              </div>
+            )}
+            {node.tags.length > 0 && (
+              <div className="flex gap-1 mt-1 flex-wrap justify-center">
+                {node.tags.map((tag) => (
+                  <span
+                    key={tag.text}
+                    className="px-1.5 py-0.5 rounded text-[7px] font-semibold"
+                    style={{
+                      fontFamily: 'var(--font-mono)',
+                      background: tag.bg,
+                      color: tag.colour,
+                    }}
+                  >
+                    {tag.text}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Mobile: existing vertical git-commit layout */}
+      <div className="lg:hidden relative mt-2" style={{ paddingLeft: '28px' }}>
         {/* Static track line */}
         <div
           className="absolute w-0.5"

@@ -180,6 +180,119 @@ body > * {
   to   { transform: translateY(0); opacity: 1; }
 }
 
+/* ── Blog article typography ────────────────────────────────────── */
+.prose-custom h2 {
+  font-family: var(--font-mono);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+.prose-custom h3 {
+  font-family: var(--font-mono);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+.prose-custom p {
+  margin-bottom: 1rem;
+  color: var(--text-muted);
+}
+.prose-custom ul, .prose-custom ol {
+  margin-bottom: 1rem;
+  padding-left: 1.5rem;
+  color: var(--text-muted);
+}
+.prose-custom li {
+  margin-bottom: 0.35rem;
+  line-height: 1.7;
+}
+.prose-custom strong {
+  color: var(--text);
+  font-weight: 600;
+}
+.prose-custom blockquote {
+  border-left: 3px solid var(--amber);
+  padding: 0.75rem 1rem;
+  margin: 1.25rem 0;
+  background: var(--cream);
+  border-radius: 0 8px 8px 0;
+  font-style: italic;
+  color: var(--warm-brown);
+}
+.prose-custom code {
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+  background: var(--bg-subtle);
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  color: var(--coral);
+}
+.prose-custom pre {
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem;
+  overflow-x: auto;
+  margin: 1.25rem 0;
+}
+.prose-custom pre code {
+  background: none;
+  padding: 0;
+  color: var(--text);
+}
+.prose-custom table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.25rem 0;
+  font-size: 13px;
+}
+.prose-custom th {
+  text-align: left;
+  padding: 8px 12px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+  border-bottom: 2px solid var(--border);
+  background: var(--bg);
+}
+.prose-custom td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+.prose-custom tr:hover td {
+  background: var(--amber-glow);
+}
+.prose-custom hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 2rem 0;
+}
+.prose-custom a {
+  color: var(--amber);
+  text-decoration: none;
+  font-weight: 500;
+}
+.prose-custom a:hover {
+  text-decoration: underline;
+}
+
+/* ── Mobile: hide grid overlay on small screens ──────────────────── */
+@media (max-width: 767px) {
+  body::before {
+    display: none;
+  }
+}
+
 /* ── Accessibility ───────────────────────────────────────────────── */
 
 /* Focus ring — visible keyboard navigation indicator */

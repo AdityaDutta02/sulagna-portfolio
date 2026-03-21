@@ -10,15 +10,15 @@ export default function Coffee() {
   return (
     <div
       aria-hidden="true"
+      className="hidden md:flex"
       style={{
         position: "fixed",
         bottom: 56,
         left: 28,
-        display: "flex",
         flexDirection: "column",
         alignItems: "center",
         gap: 4,
-        zIndex: 10,
+        zIndex: 50,
         pointerEvents: "none",
       }}
     >

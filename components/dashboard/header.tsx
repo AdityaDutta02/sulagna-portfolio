@@ -17,7 +17,7 @@ const badgeBg: Record<string, React.CSSProperties> = {
 
 export function Header() {
   return (
-    <header className="flex items-center gap-5 mb-7">
+    <header className="flex flex-col sm:flex-row items-center sm:items-center gap-3 sm:gap-5 mb-7">
       <div
         className="w-14 h-14 rounded-md flex items-center justify-center shrink-0"
         style={{
@@ -31,7 +31,7 @@ export function Header() {
 
       <div className="flex-1 min-w-0">
         <h1
-          className="text-[22px] font-semibold mb-0.5"
+          className="text-[22px] font-semibold mb-0.5 text-center sm:text-left"
           style={{
             fontFamily: 'var(--font-mono)',
             letterSpacing: '-0.5px',
@@ -41,7 +41,7 @@ export function Header() {
           {profile.name} <span style={{ color: 'var(--amber)' }}>{profile.lastName}</span>
         </h1>
         <div
-          className="text-[13px]"
+          className="text-[13px] text-center sm:text-left"
           style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}
         >
           {profile.tagline}
@@ -49,7 +49,7 @@ export function Header() {
         </div>
       </div>
 
-      <div className="flex gap-2 shrink-0">
+      <div className="flex flex-wrap gap-2 shrink-0">
         {profile.badges.map((badge) => (
           <span
             key={badge.text}

@@ -34,7 +34,7 @@ const pressStart2P = Press_Start_2P({
 export const metadata: Metadata = {
   metadataBase: new URL('https://sulagna.dev'),
   title: { default: 'Sulagna Dey — Data Analyst & Power BI Specialist', template: '%s | Sulagna Dey' },
-  description: 'Interactive dashboard portfolio showcasing data analysis, Power BI dashboards, and market intelligence work',
+  description: 'Sulagna Dey — Data Analyst, Market Analyst & Power BI Specialist. Interactive portfolio showcasing aluminium market intelligence, data visualization dashboards, and automation expertise.',
   openGraph: {
     type: 'website',
     locale: 'en_US',
