@@ -3,6 +3,7 @@
 import { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { type Kpi } from '@/lib/data';
+import { useDrill } from '@/components/drill-through/drill-context';
 import { Sparkline } from './sparkline';
 
 interface KpiTileProps {
@@ -11,6 +12,7 @@ interface KpiTileProps {
 }
 
 export function KpiTile({ kpi, className = '' }: KpiTileProps) {
+  const { openDrill } = useDrill();
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: '0px 0px -40px 0px' });
 
@@ -28,7 +30,7 @@ export function KpiTile({ kpi, className = '' }: KpiTileProps) {
         boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
       }}
       transition={{ duration: 0.2, ease: 'easeOut' }}
-      onClick={() => {}}
+      onClick={() => openDrill(kpi.id)}
       data-drill={kpi.id}
       data-testid={`kpi-tile-${kpi.id}`}
     >

@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { type Project } from '@/lib/data';
+import { useDrill } from '@/components/drill-through/drill-context';
 
 interface ProjectCardProps {
   project: Project;
@@ -9,6 +10,7 @@ interface ProjectCardProps {
 }
 
 export function ProjectCard({ project, className = '' }: ProjectCardProps) {
+  const { openDrill } = useDrill();
   return (
     <motion.div
       className={`relative cursor-pointer rounded-lg p-4 overflow-hidden ${className}`}
@@ -22,7 +24,7 @@ export function ProjectCard({ project, className = '' }: ProjectCardProps) {
         boxShadow: '0 6px 20px rgba(0,0,0,0.08)',
       }}
       transition={{ duration: 0.2, ease: 'easeOut' }}
-      onClick={() => {}}
+      onClick={() => openDrill(project.reportId)}
       data-drill={project.reportId}
       data-testid={`project-card-${project.id}`}
     >

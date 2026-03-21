@@ -2,9 +2,12 @@
 
 import { AnimatePresence, motion } from 'framer-motion';
 import { useDrill } from './drill-context';
+import { reports } from '@/lib/reports';
 
 export function DrillPanel() {
   const { isOpen, reportId, closeDrill } = useDrill();
+  const report = reportId ? reports[reportId] : null;
+  const ReportComponent = report?.component;
 
   return (
     <AnimatePresence>
@@ -81,7 +84,7 @@ export function DrillPanel() {
                 style={{ fontFamily: 'var(--font-mono)' }}
                 data-testid="drill-title"
               >
-                {reportId ?? 'Report'}
+                {report?.title ?? reportId ?? 'Report'}
               </div>
 
               <div
@@ -91,7 +94,7 @@ export function DrillPanel() {
                   color: 'var(--text-dim)',
                 }}
               >
-                Dashboard &rsaquo; {reportId}
+                {report?.breadcrumb ?? `Dashboard › ${reportId}`}
               </div>
             </div>
 
@@ -100,12 +103,11 @@ export function DrillPanel() {
               className="flex-1 overflow-y-auto p-6"
               style={{ overscrollBehavior: 'contain' }}
             >
-              <p
-                className="text-sm"
-                style={{ color: 'var(--text-muted)' }}
-              >
-                Report content for: {reportId}
-              </p>
+              {ReportComponent ? <ReportComponent /> : (
+                <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                  Report not found: {reportId}
+                </p>
+              )}
             </div>
           </motion.div>
         </>
