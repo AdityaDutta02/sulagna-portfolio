@@ -31,7 +31,7 @@ export function AuthorCard() {
           <Link
             href="https://linkedin.com/in/sulagna-dey"
             target="_blank"
-            rel="noopener"
+            rel="noopener noreferrer"
             className="text-[10px] font-semibold no-underline hover:underline"
             style={{ fontFamily: 'var(--font-mono)', color: 'var(--amber)' }}
           >

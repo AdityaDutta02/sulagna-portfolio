@@ -4,13 +4,13 @@ import { PixelAvatar } from './pixel-avatar';
 import { TypingCursor } from './typing-cursor';
 
 const badgeStyles: Record<string, string> = {
-  gold: 'text-white shadow-sm',
+  gold: 'text-[var(--text)] shadow-sm',
   cert: 'border text-[var(--green)]',
   location: 'border text-[var(--text-muted)]',
 };
 
 const badgeBg: Record<string, React.CSSProperties> = {
-  gold: { background: 'linear-gradient(135deg, var(--amber), #d4a843)' },
+  gold: { background: 'var(--amber-decorative)' },
   cert: { background: 'var(--green-bg)', borderColor: 'rgba(90,154,110,0.2)' },
   location: { background: 'var(--bg-subtle)', borderColor: 'var(--border)' },
 };

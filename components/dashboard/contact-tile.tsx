@@ -17,16 +17,16 @@ function ContactLink(props: ContactLinkProps) {
   const { href, label, colSpan = false, primary = false, newTab = false, testId } = props;
 
   const baseStyle: React.CSSProperties = primary
-    ? { background: 'var(--amber)', borderColor: 'var(--amber)', color: '#fff' }
+    ? { background: 'var(--amber-decorative)', borderColor: 'var(--amber-decorative)', color: 'var(--text)' }
     : { background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' };
 
   function handleMouseEnter(e: React.MouseEvent<HTMLAnchorElement>): void {
     const el = e.currentTarget;
-    el.style.background = primary ? '#b5882e' : 'var(--cream)';
-    el.style.borderColor = primary ? '#b5882e' : 'var(--amber)';
+    el.style.background = primary ? 'var(--warm-brown)' : 'var(--cream)';
+    el.style.borderColor = primary ? 'var(--warm-brown)' : 'var(--amber)';
     el.style.boxShadow = primary
-      ? '0 6px 16px rgba(0,0,0,0.12)'
-      : '0 4px 12px rgba(0,0,0,0.08)';
+      ? 'var(--shadow-card-hover)'
+      : 'var(--shadow-card)';
   }
 
   function handleMouseLeave(e: React.MouseEvent<HTMLAnchorElement>): void {

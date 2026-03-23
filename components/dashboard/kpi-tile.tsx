@@ -27,7 +27,7 @@ export function KpiTile({ kpi, className = '' }: KpiTileProps) {
       whileHover={{
         y: -3,
         borderColor: 'var(--border-hover, #c5c2bb)',
-        boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
+        boxShadow: 'var(--shadow-card)',
       }}
       transition={{ duration: 0.2, ease: 'easeOut' }}
       onClick={() => openDrill(kpi.id)}

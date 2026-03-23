@@ -7,21 +7,27 @@
   --bg-subtle: #eeedea;
   --border: #e2e0db;
   --text: #2c2a26;
-  --text-muted: #8a8780;
-  --text-dim: #b5b2ac;
-  --amber: #c8973e;
+  --text-muted: #726f69;
+  --text-dim: #747067;
+  --amber: #7d5e1f;
+  --amber-decorative: #c8973e;
   --amber-light: #f0e0c0;
-  --amber-glow: rgba(200, 151, 62, 0.12);
+  --amber-glow: rgba(150, 114, 43, 0.12);
   --cream: #f5efe3;
   --warm-brown: #6b5d4a;
-  --green: #5a9a6e;
-  --green-bg: rgba(90, 154, 110, 0.08);
-  --blue: #5a8aaa;
-  --blue-bg: rgba(90, 138, 170, 0.08);
-  --coral: #c47058;
-  --coral-bg: rgba(196, 112, 88, 0.08);
-  --plum: #8a6a9a;
-  --plum-bg: rgba(138, 106, 154, 0.08);
+  --green: #487b58;
+  --green-bg: rgba(72, 123, 88, 0.08);
+  --blue: #4a7490;
+  --blue-bg: rgba(74, 116, 144, 0.08);
+  --coral: #a85540;
+  --coral-bg: rgba(168, 85, 64, 0.08);
+  --plum: #7a5c89;
+  --plum-bg: rgba(122, 92, 137, 0.08);
+
+  /* Elevation */
+  --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.08);
+  --shadow-card-hover: 0 12px 32px rgba(0, 0, 0, 0.12);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 /* ── Tailwind v4 theme bridge ────────────────────────────────────── */
@@ -34,6 +40,7 @@
   --color-text-muted: var(--text-muted);
   --color-text-dim: var(--text-dim);
   --color-amber: var(--amber);
+  --color-amber-decorative: var(--amber-decorative);
   --color-amber-light: var(--amber-light);
   --color-cream: var(--cream);
   --color-warm-brown: var(--warm-brown);
@@ -92,8 +99,9 @@ body {
   /* Grid lines at 25% opacity — achieved via mix-blend-mode on pseudo-element */
 }
 
-/* Grid line overlay using pseudo-element for opacity control */
-body::before {
+/* Grid line overlay — opt-in via data-grid attribute on body.
+   Only the dashboard page sets this; blog pages omit it so no grid shows. */
+body[data-grid]::before {
   content: "";
   position: fixed;
   inset: 0;
@@ -332,7 +340,7 @@ body > * {
 
 /* ── Hide grid overlay on small screens ──────────────────────────── */
 @media (max-width: 767px) {
-  body::before { display: none; }
+  body[data-grid]::before { display: none; }
 }
 
 /* ── Accessibility ───────────────────────────────────────────────── */

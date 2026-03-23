@@ -25,7 +25,7 @@ export function PostCard({ post, featured = false }: PostCardProps) {
   return (
     <motion.div
       className={`relative overflow-hidden rounded-xl ${padding} bg-[var(--bg-card)] border border-[var(--border)]`}
-      whileHover={{ y: -3, boxShadow: '0 8px 24px rgba(0,0,0,0.08)', borderColor: 'var(--amber)' }}
+      whileHover={{ y: -3, boxShadow: 'var(--shadow-card)', borderColor: 'var(--amber)' }}
       transition={{ duration: 0.2, ease: 'easeOut' }}
       data-testid={`post-card-${post.slug}`}
     >

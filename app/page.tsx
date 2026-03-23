@@ -1,6 +1,7 @@
 import { Header } from '@/components/dashboard/header';
 import { Highlights } from '@/components/dashboard/highlights';
 import { DashboardGrid } from '@/components/dashboard/dashboard-grid';
+import { GridToggle } from '@/components/ambient/grid-toggle';
 import { kpis } from '@/lib/data';
 
 export default function Dashboard() {
@@ -24,6 +25,8 @@ export default function Dashboard() {
 
   return (
     <main className="relative z-[1] max-w-[1320px] mx-auto px-8 py-4 pb-8">
+      {/* Enables excel-grid overlay on dashboard only — blog pages omit this */}
+      <GridToggle />
       {/* Static JSON-LD — hardcoded schema data, not user input, safe to render */}
       <script
         type="application/ld+json"

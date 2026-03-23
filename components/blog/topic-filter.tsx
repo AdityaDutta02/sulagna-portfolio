@@ -14,9 +14,9 @@ export function TopicFilter({ topics, activeTopic }: TopicFilterProps) {
             className="px-3.5 py-1.5 rounded-full text-[10px] font-medium transition-all no-underline"
             style={{
               fontFamily: 'var(--font-mono)',
-              background: isActive ? 'var(--amber)' : 'var(--bg)',
-              color: isActive ? '#fff' : 'var(--text)',
-              border: `1px solid ${isActive ? 'var(--amber)' : 'var(--border)'}`,
+              background: isActive ? 'var(--amber-decorative)' : 'var(--bg)',
+              color: isActive ? 'var(--text)' : 'var(--text)',
+              border: `1px solid ${isActive ? 'var(--amber-decorative)' : 'var(--border)'}`,
             }}
           >{topic}</Link>
         );

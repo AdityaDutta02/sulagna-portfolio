@@ -18,7 +18,7 @@ export function ProjectsTile({ className = '' }: ProjectsTileProps) {
       }}
       whileHover={{
         y: -3,
-        boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
+        boxShadow: 'var(--shadow-card)',
       }}
       transition={{ duration: 0.2, ease: 'easeOut' }}
       data-testid="projects-tile"
