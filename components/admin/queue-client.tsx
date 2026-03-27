@@ -34,13 +34,24 @@ export function QueueClient(): React.JSX.Element {
           const res = await fetch(`/api/admin/queue?platform=${p}`);
           if (!res.ok) throw new Error(`Failed to load ${p} queue (${res.status})`);
           const data = await res.json() as { entries: Record<string, QueueValue> };
-          const items: QueueEntry[] = [];
-          for (const [itemId, value] of Object.entries(data.entries ?? {})) {
-            const itemRes = await fetch(`/api/admin/items?date=${value.itemDate}`);
-            const itemData = await itemRes.json() as { items: TrackedItem[] };
-            const item = itemData.items?.find((i) => i.id === itemId);
-            items.push({ itemId, value, item });
-          }
+          const entryPairs = Object.entries(data.entries ?? {});
+
+          // Collect unique itemDates, fetch each once
+          const uniqueDates = [...new Set(entryPairs.map(([, v]) => v.itemDate))];
+          const itemsByDate: Record<string, TrackedItem[]> = {};
+          await Promise.all(
+            uniqueDates.map(async (d) => {
+              const itemRes = await fetch(`/api/admin/items?date=${d}`);
+              if (!itemRes.ok) throw new Error(`Failed to load items for date ${d} (${itemRes.status})`);
+              const itemData = await itemRes.json() as { items: TrackedItem[] };
+              itemsByDate[d] = itemData.items ?? [];
+            })
+          );
+
+          const items: QueueEntry[] = entryPairs.map(([itemId, value]) => {
+            const item = itemsByDate[value.itemDate]?.find((i) => i.id === itemId);
+            return { itemId, value, item };
+          });
           items.sort((a, b) => (b.item?.heuristicScore ?? 0) - (a.item?.heuristicScore ?? 0));
           return [p, items] as [Platform, QueueEntry[]];
         })
