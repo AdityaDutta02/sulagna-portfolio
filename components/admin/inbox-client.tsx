@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { ScoreBar } from './score-bar';
-import type { TrackedItem } from '@/lib/types';
+import type { TrackedItem, Platform } from '@/lib/types';
 
 const PLATFORM_COLORS: Record<string, string> = {
   blog: 'var(--blue)',
@@ -26,17 +27,24 @@ export function InboxClient(): React.JSX.Element {
   const today = new Date().toISOString().slice(0, 10);
   const [date, setDate] = useState(today);
   const [items, setItems] = useState<TrackedItem[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   const [loading, setLoading] = useState(true);
   const [scanning, setScanning] = useState(false);
   const [scanMsg, setScanMsg] = useState('');
 
+  const router = useRouter();
+
   const loadItems = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const res = await fetch(`/api/admin/items?date=${date}`);
+      if (!res.ok) throw new Error(`Failed to load items (${res.status})`);
       const data = await res.json() as { items: TrackedItem[] };
       setItems(data.items ?? []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load items');
     } finally {
       setLoading(false);
     }
@@ -44,14 +52,14 @@ export function InboxClient(): React.JSX.Element {
 
   useEffect(() => { void loadItems(); }, [loadItems]);
 
-  async function postAndReload(url: string, body: Record<string, unknown>): Promise<Response> {
+  async function postAndReload(url: string, body: Record<string, unknown>): Promise<void> {
     const res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     });
+    if (!res.ok) throw new Error(`Request failed (${res.status})`);
     await loadItems();
-    return res;
   }
 
   async function handleRunScan(): Promise<void> {
@@ -68,12 +76,20 @@ export function InboxClient(): React.JSX.Element {
   }
 
   async function handleRescore(item: TrackedItem): Promise<void> {
-    await postAndReload('/api/admin/rescore', { itemId: item.id, date });
+    try {
+      await postAndReload('/api/admin/rescore', { itemId: item.id, date });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Rescore failed');
+    }
   }
 
-  async function handleAssignPlatform(item: TrackedItem, platform: string): Promise<void> {
-    const scheduled = platform === 'blog' ? getISOWeek(new Date()) : today;
-    await postAndReload('/api/admin/queue', { platform, itemId: item.id, itemDate: date, scheduled });
+  async function handleAssignPlatform(item: TrackedItem, platform: Platform): Promise<void> {
+    try {
+      const scheduled = platform === 'blog' ? getISOWeek(new Date()) : today;
+      await postAndReload('/api/admin/queue', { platform, itemId: item.id, itemDate: date, scheduled });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Queue assignment failed');
+    }
   }
 
   return (
@@ -120,6 +136,12 @@ export function InboxClient(): React.JSX.Element {
           {items.length} items
         </span>
       </div>
+
+      {error && (
+        <p style={{ color: 'var(--coral)', fontSize: '12px', fontFamily: 'var(--font-mono)', marginBottom: '0.75rem' }}>
+          {error}
+        </p>
+      )}
 
       {/* Table */}
       {loading ? (
@@ -209,7 +231,12 @@ export function InboxClient(): React.JSX.Element {
                         <ActionBtn onClick={() => { void handleRescore(item); }}>Re-score</ActionBtn>
                         <select
                           defaultValue=""
-                          onChange={(e) => { if (e.target.value) { void handleAssignPlatform(item, e.target.value); e.target.value = ''; } }}
+                          onChange={(e) => {
+                            if (e.target.value) {
+                              void handleAssignPlatform(item, e.target.value as Platform);
+                              e.target.value = '';
+                            }
+                          }}
                           style={{ ...CONTROL_BASE_STYLE, padding: '2px 4px' }}
                         >
                           <option value="">→ Queue</option>
@@ -217,7 +244,7 @@ export function InboxClient(): React.JSX.Element {
                           <option value="linkedin">LinkedIn</option>
                           <option value="twitter">Twitter</option>
                         </select>
-                        <ActionBtn onClick={() => { window.location.href = `/admin/generate?itemId=${item.id}&date=${date}`; }}>
+                        <ActionBtn onClick={() => router.push(`/admin/generate?itemId=${item.id}&date=${date}`)}>
                           Generate
                         </ActionBtn>
                       </div>
