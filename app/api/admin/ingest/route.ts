@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateText } from 'ai';
-import { randomUUID } from 'crypto';
+import { randomUUID, timingSafeEqual } from 'crypto';
 import { getRedis } from '@/lib/redis';
 import { openrouter } from '@/lib/openrouter';
 import { fetchFeedItems } from '@/lib/rss';
@@ -25,8 +25,12 @@ async function isAuthorized(request: NextRequest): Promise<boolean> {
   // Vercel Cron authorization
   const cronSecret = process.env.CRON_SECRET;
   if (cronSecret) {
-    const auth = request.headers.get('authorization');
-    if (auth === `Bearer ${cronSecret}`) return true;
+    const auth = request.headers.get('authorization') ?? '';
+    const expected = `Bearer ${cronSecret}`;
+    if (
+      auth.length === expected.length &&
+      timingSafeEqual(Buffer.from(auth), Buffer.from(expected))
+    ) return true;
   }
   // Manual trigger: admin session cookie
   const password = process.env.ADMIN_PASSWORD;

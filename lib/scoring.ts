@@ -26,8 +26,8 @@ interface ScoreInput {
 
 export function computeHeuristicScore(input: ScoreInput): number {
   const recencyScore = 100 * Math.max(0, 1 - input.hoursOld / 168);
-  const sourceScore = (input.weight / 5) * 40;
-  const keywordScore = Math.min(30, input.keywordMatches * 5);
+  const sourceScore = (input.weight / 5) * 100;
+  const keywordScore = Math.min(100, input.keywordMatches * (100 / 12));
 
   const raw =
     recencyScore * 0.4 + sourceScore * 0.3 + keywordScore * 0.3;
