@@ -1,6 +1,7 @@
 import { Redis } from '@upstash/redis';
 
 if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
+  // Fail fast: misconfigured env vars should surface at startup, not at runtime
   throw new Error('UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN must be set');
 }
 

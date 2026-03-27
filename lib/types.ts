@@ -25,10 +25,10 @@ export interface TrackedItem {
 }
 
 export interface AiScoreResult {
-  relevance: number;
-  novelty: number;
-  engagement: number;
-  composite: number;
+  relevance: number;   // 1–10
+  novelty: number;     // 1–10
+  engagement: number;  // 1–10
+  composite: number;   // 1–10
 }
 
 // Stored as JSON value in queue:{platform} hash, keyed by itemId
