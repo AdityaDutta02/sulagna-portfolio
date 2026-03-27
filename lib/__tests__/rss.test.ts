@@ -4,7 +4,7 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { parseXml } from '../rss';
+import { parseXml, fetchFeedItems } from '../rss';
 
 const rss2Xml = readFileSync(join(__dirname, 'fixtures/rss2.xml'), 'utf-8');
 const atomXml = readFileSync(join(__dirname, 'fixtures/atom.xml'), 'utf-8');
@@ -21,8 +21,8 @@ describe('parseXml — RSS 2.0', () => {
     expect(first.title).toBe('Python 3.13 Released');
     expect(first.url).toBe('https://example.com/python-313');
     expect(first.summary).toContain('Python 3.13');
-    expect(first.publishedAt).toBeInstanceOf(Date);
-    expect(isNaN(first.publishedAt.getTime())).toBe(false);
+    expect(typeof first.publishedAt).toBe('string');
+    expect(first.publishedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/);
   });
 });
 
@@ -53,5 +53,46 @@ describe('parseXml — edge cases', () => {
 
   it('returns empty array for unrecognised format', () => {
     expect(parseXml('<html><body>hello</body></html>')).toEqual([]);
+  });
+
+  it('missing description field returns empty string for summary', () => {
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <item>
+      <title>No Description Item</title>
+      <link>https://example.com/no-desc</link>
+    </item>
+  </channel>
+</rss>`;
+    const items = parseXml(xml);
+    expect(items).toHaveLength(1);
+    expect(items[0]!.summary).toBe('');
+  });
+
+  it('invalid XML returns empty array', () => {
+    expect(parseXml('not valid xml!!!')).toEqual([]);
+  });
+
+  it('future-dated items are not filtered out', () => {
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <item>
+      <title>Future Post</title>
+      <link>https://example.com/future</link>
+      <pubDate>Fri, 01 Jan 2100 12:00:00 GMT</pubDate>
+    </item>
+  </channel>
+</rss>`;
+    const items = parseXml(xml);
+    expect(items).toHaveLength(1);
+    expect(items[0]!.title).toBe('Future Post');
+  });
+});
+
+describe('fetchFeedItems', () => {
+  it('is exported as a function', () => {
+    expect(typeof fetchFeedItems).toBe('function');
   });
 });
