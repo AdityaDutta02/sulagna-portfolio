@@ -12,11 +12,12 @@ export function proxy(request: NextRequest): NextResponse {
   // Allow login page through unconditionally
   if (pathname === '/admin/login') return NextResponse.next();
 
-  const password = process.env.ADMIN_PASSWORD ?? '';
-  const secret = process.env.ADMIN_SESSION_SECRET ?? '';
+  const password = process.env.ADMIN_PASSWORD;
+  const secret = process.env.ADMIN_SESSION_SECRET;
   const sessionCookie = request.cookies.get('admin-session')?.value ?? '';
 
-  if (!verifySession(sessionCookie, password, secret)) {
+  // Fail closed: reject if env vars missing or session invalid
+  if (!password || !secret || !verifySession(sessionCookie, password, secret)) {
     return NextResponse.redirect(new URL('/admin/login', request.url));
   }
   return NextResponse.next();

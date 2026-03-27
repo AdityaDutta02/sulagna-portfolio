@@ -24,6 +24,7 @@ export function verifySession(
   password: string,
   secret: string
 ): boolean {
+  if (!password || !secret) return false;
   const expected = signSession(password, secret);
   // Compare the hex strings as UTF-8 buffers — both are ASCII, fixed 64 chars.
   // Using 'hex' decoding on cookieValue silently drops non-hex chars, which
