@@ -41,4 +41,13 @@ describe('verifySession', () => {
   it('returns false for an empty string', () => {
     expect(verifySession('', 'pw', 'sec')).toBe(false);
   });
+
+  it('returns false when verified with the wrong secret', () => {
+    const token = signSession('pw', 'sec');
+    expect(verifySession(token, 'pw', 'wrongsec')).toBe(false);
+  });
+
+  it('returns false for a non-hex 64-character string', () => {
+    expect(verifySession('z'.repeat(64), 'pw', 'sec')).toBe(false);
+  });
 });

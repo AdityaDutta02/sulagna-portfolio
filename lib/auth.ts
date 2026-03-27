@@ -25,7 +25,6 @@ export function verifySession(
   secret: string
 ): boolean {
   const expected = signSession(password, secret);
-  if (cookieValue.length !== expected.length) return false;
   try {
     return timingSafeEqual(
       Buffer.from(cookieValue, 'hex'),
