@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdminAuth } from '@/lib/require-admin-auth';
-import { redis } from '@/lib/redis';
+import { getRedis } from '@/lib/redis';
 import type { Platform } from '@/lib/types';
 
 // GET /api/admin/styleguides?platform=blog|linkedin|twitter
@@ -13,7 +13,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: 'platform required' }, { status: 400 });
   }
 
-  const guide = (await redis.get<string>(`styleguide:${platform}`)) ?? '';
+  const guide = (await getRedis().get<string>(`styleguide:${platform}`)) ?? '';
   return NextResponse.json({ platform, guide });
 }
 
@@ -36,6 +36,6 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: 'platform and guide required' }, { status: 400 });
   }
 
-  await redis.set(`styleguide:${platform}`, guide);
+  await getRedis().set(`styleguide:${platform}`, guide);
   return NextResponse.json({ ok: true });
 }

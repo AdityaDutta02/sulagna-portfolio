@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateText } from 'ai';
-import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import { randomUUID } from 'crypto';
-import { redis } from '@/lib/redis';
+import { getRedis } from '@/lib/redis';
+import { openrouter } from '@/lib/openrouter';
 import { fetchFeedItems } from '@/lib/rss';
 import { computeHeuristicScore, countKeywordMatches } from '@/lib/scoring';
 import { DEFAULT_FEEDS } from '@/lib/feeds-default';
@@ -10,10 +10,15 @@ import { verifySession } from '@/lib/auth';
 import { cookies } from 'next/headers';
 import type { Feed, TrackedItem } from '@/lib/types';
 
-const openrouter = createOpenRouter({ apiKey: process.env.OPENROUTER_API_KEY ?? '' });
+const TTL_14_DAYS = 14 * 24 * 60 * 60;
 
 function todayKey(): string {
   return `items:${new Date().toISOString().slice(0, 10)}`;
+}
+
+async function storeItem(key: string, item: TrackedItem): Promise<void> {
+  await getRedis().hset(key, { [item.id]: JSON.stringify(item) });
+  await getRedis().expire(key, TTL_14_DAYS);
 }
 
 async function isAuthorized(request: NextRequest): Promise<boolean> {
@@ -41,10 +46,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   const now = new Date();
 
   // Load feeds from Redis; seed defaults on first run
-  let feedsRaw = await redis.get<string>('feeds');
+  let feedsRaw = await getRedis().get<string>('feeds');
   if (!feedsRaw) {
     const serialized = JSON.stringify(DEFAULT_FEEDS);
-    await redis.set('feeds', serialized);
+    await getRedis().set('feeds', serialized);
     feedsRaw = serialized;
   }
   const feeds: Feed[] = JSON.parse(feedsRaw) as Feed[];
@@ -59,7 +64,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   );
 
   // Load existing URLs to dedup
-  const existingRaw = (await redis.hgetall<Record<string, string>>(key)) ?? {};
+  const existingRaw = (await getRedis().hgetall<Record<string, string>>(key)) ?? {};
   const existingUrls = new Set(
     Object.values(existingRaw).map((v) => {
       try { return (JSON.parse(v) as TrackedItem).url; } catch { return ''; }
@@ -73,7 +78,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     if (result.status === 'rejected') continue;
     const { feed, items } = result.value;
     for (const item of items) {
-      // item.publishedAt is an ISO string — convert to Date for comparison
       const publishedDate = item.publishedAt ? new Date(item.publishedAt) : null;
       if (!publishedDate || publishedDate.getTime() < cutoffMs) continue;
       if (existingUrls.has(item.url)) continue;
@@ -94,8 +98,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         discoverySource: 'rss',
       };
 
-      await redis.hset(key, { [tracked.id]: JSON.stringify(tracked) });
-      await redis.expire(key, 14 * 24 * 60 * 60); // 14 days TTL
+      await storeItem(key, tracked);
       existingUrls.add(item.url);
       newCount++;
     }
@@ -136,8 +139,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           discoverySource: 'ai-discovery',
         };
 
-        await redis.hset(key, { [tracked.id]: JSON.stringify(tracked) });
-        await redis.expire(key, 14 * 24 * 60 * 60);
+        await storeItem(key, tracked);
         existingUrls.add(aiItem.url);
         newCount++;
       }

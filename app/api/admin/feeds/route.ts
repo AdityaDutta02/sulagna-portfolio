@@ -1,18 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { randomUUID } from 'crypto';
 import { requireAdminAuth } from '@/lib/require-admin-auth';
-import { redis } from '@/lib/redis';
+import { getRedis } from '@/lib/redis';
+import { parseBody } from '@/lib/parse-body';
 import { DEFAULT_FEEDS } from '@/lib/feeds-default';
 import type { Feed } from '@/lib/types';
 
 async function loadFeeds(): Promise<Feed[]> {
-  const raw = await redis.get<string>('feeds');
+  const raw = await getRedis().get<string>('feeds');
   if (!raw) return DEFAULT_FEEDS;
   try { return JSON.parse(raw) as Feed[]; } catch { return DEFAULT_FEEDS; }
 }
 
 async function saveFeeds(feeds: Feed[]): Promise<void> {
-  await redis.set('feeds', JSON.stringify(feeds));
+  await getRedis().set('feeds', JSON.stringify(feeds));
 }
 
 // GET — list all feeds
@@ -27,12 +28,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   const authError = await requireAdminAuth();
   if (authError) return authError;
 
-  let body: unknown;
-  try { body = await request.json(); } catch {
-    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
-  }
+  const [body, parseError] = await parseBody(request);
+  if (parseError) return parseError;
 
-  const { name, url, category, weight, enabled } = (body ?? {}) as Record<string, unknown>;
+  const { name, url, category, weight, enabled } = body;
   if (typeof name !== 'string' || typeof url !== 'string' || typeof category !== 'string') {
     return NextResponse.json({ error: 'name, url, category required' }, { status: 400 });
   }
@@ -57,12 +56,10 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
   const authError = await requireAdminAuth();
   if (authError) return authError;
 
-  let body: unknown;
-  try { body = await request.json(); } catch {
-    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
-  }
+  const [body, parseError] = await parseBody(request);
+  if (parseError) return parseError;
 
-  const { id, ...updates } = (body ?? {}) as Record<string, unknown>;
+  const { id, ...updates } = body;
   if (typeof id !== 'string') {
     return NextResponse.json({ error: 'id required' }, { status: 400 });
   }

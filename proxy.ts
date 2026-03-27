@@ -1,13 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifySession } from './lib/auth';
 
-export const config = {
-  matcher: ['/admin/:path*'],
-  runtime: 'nodejs',
-};
-
 export function proxy(request: NextRequest): NextResponse {
   const { pathname } = request.nextUrl;
+
+  // Only guard /admin/* routes
+  if (!pathname.startsWith('/admin')) return NextResponse.next();
 
   // Allow login page through unconditionally
   if (pathname === '/admin/login') return NextResponse.next();

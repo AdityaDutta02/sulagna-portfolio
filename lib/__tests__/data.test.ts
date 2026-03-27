@@ -157,6 +157,6 @@ describe('contact', () => {
   });
 
   it('does not have calendarLink (removed)', () => {
-    expect((contact as Record<string, unknown>).calendarLink).toBeUndefined();
+    expect((contact as unknown as Record<string, unknown>).calendarLink).toBeUndefined();
   });
 });

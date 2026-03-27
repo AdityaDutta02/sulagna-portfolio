@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdminAuth } from '@/lib/require-admin-auth';
-import { redis } from '@/lib/redis';
+import { getRedis } from '@/lib/redis';
+import { parseBody } from '@/lib/parse-body';
 import type { Platform, QueueValue } from '@/lib/types';
 
 function queueKey(platform: Platform): string {
@@ -17,7 +18,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: 'platform required' }, { status: 400 });
   }
 
-  const raw = (await redis.hgetall<Record<string, string>>(queueKey(platform))) ?? {};
+  const raw = (await getRedis().hgetall<Record<string, string>>(queueKey(platform))) ?? {};
   const entries: Record<string, QueueValue> = {};
   for (const [itemId, val] of Object.entries(raw)) {
     try { entries[itemId] = JSON.parse(val) as QueueValue; } catch { /* skip corrupt entries */ }
@@ -32,13 +33,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   const authError = await requireAdminAuth();
   if (authError) return authError;
 
-  let body: unknown;
-  try { body = await request.json(); } catch {
-    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
-  }
+  const [body, parseError] = await parseBody(request);
+  if (parseError) return parseError;
 
-  const { platform, itemId, itemDate, scheduled } =
-    (body ?? {}) as Record<string, unknown>;
+  const { platform, itemId, itemDate, scheduled } = body;
 
   if (
     typeof platform !== 'string' || !['blog', 'linkedin', 'twitter'].includes(platform) ||
@@ -50,7 +48,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   }
 
   const value: QueueValue = { itemDate, scheduled };
-  await redis.hset(queueKey(platform as Platform), { [itemId]: JSON.stringify(value) });
+  await getRedis().hset(queueKey(platform as Platform), { [itemId]: JSON.stringify(value) });
   return NextResponse.json({ ok: true });
 }
 
@@ -60,16 +58,14 @@ export async function DELETE(request: NextRequest): Promise<NextResponse> {
   const authError = await requireAdminAuth();
   if (authError) return authError;
 
-  let body: unknown;
-  try { body = await request.json(); } catch {
-    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
-  }
+  const [body, parseError] = await parseBody(request);
+  if (parseError) return parseError;
 
-  const { platform, itemId } = (body ?? {}) as Record<string, unknown>;
+  const { platform, itemId } = body;
   if (typeof platform !== 'string' || typeof itemId !== 'string') {
     return NextResponse.json({ error: 'platform and itemId required' }, { status: 400 });
   }
 
-  await redis.hdel(queueKey(platform as Platform), itemId);
+  await getRedis().hdel(queueKey(platform as Platform), itemId);
   return NextResponse.json({ ok: true });
 }

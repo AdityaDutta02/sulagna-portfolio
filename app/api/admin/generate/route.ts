@@ -1,11 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateText } from 'ai';
-import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import { requireAdminAuth } from '@/lib/require-admin-auth';
-import { redis } from '@/lib/redis';
+import { getRedis } from '@/lib/redis';
+import { openrouter } from '@/lib/openrouter';
 import type { Platform, TrackedItem } from '@/lib/types';
-
-const openrouter = createOpenRouter({ apiKey: process.env.OPENROUTER_API_KEY ?? '' });
 
 const PLATFORM_LABELS: Record<Platform, string> = {
   blog: 'blog post',
@@ -33,11 +31,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: 'itemId, date, platform required' }, { status: 400 });
   }
 
-  const raw = await redis.hget<string>(`items:${date}`, itemId);
+  const raw = await getRedis().hget<string>(`items:${date}`, itemId);
   if (!raw) return NextResponse.json({ error: 'Item not found' }, { status: 404 });
 
   const item: TrackedItem = JSON.parse(raw) as TrackedItem;
-  const guide = (await redis.get<string>(`styleguide:${platform}`)) ?? '';
+  const guide = (await getRedis().get<string>(`styleguide:${platform}`)) ?? '';
 
   const systemPrompt = guide
     ? `You are a content writer for ${PLATFORM_LABELS[platform as Platform]}.\nFollow this style guide exactly:\n\n${guide}`
@@ -68,7 +66,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
   // Persist draft back to item in Redis
   const updated: TrackedItem = { ...item, draft, platform: platform as Platform };
-  await redis.hset(`items:${date}`, { [itemId]: JSON.stringify(updated) });
+  await getRedis().hset(`items:${date}`, { [itemId]: JSON.stringify(updated) });
 
   return NextResponse.json({ ok: true, draft });
 }

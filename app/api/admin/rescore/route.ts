@@ -1,11 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateText } from 'ai';
-import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import { requireAdminAuth } from '@/lib/require-admin-auth';
-import { redis } from '@/lib/redis';
+import { getRedis } from '@/lib/redis';
+import { openrouter } from '@/lib/openrouter';
 import type { TrackedItem, AiScoreResult } from '@/lib/types';
-
-const openrouter = createOpenRouter({ apiKey: process.env.OPENROUTER_API_KEY ?? '' });
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   const authError = await requireAdminAuth();
@@ -27,7 +25,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: 'itemId and date required' }, { status: 400 });
   }
 
-  const raw = await redis.hget<string>(`items:${date}`, itemId);
+  const raw = await getRedis().hget<string>(`items:${date}`, itemId);
   if (!raw) return NextResponse.json({ error: 'Item not found' }, { status: 404 });
 
   const item: TrackedItem = JSON.parse(raw) as TrackedItem;
@@ -60,7 +58,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   };
 
   const updated: TrackedItem = { ...item, aiScore: result.composite };
-  await redis.hset(`items:${date}`, { [itemId]: JSON.stringify(updated) });
+  await getRedis().hset(`items:${date}`, { [itemId]: JSON.stringify(updated) });
 
   return NextResponse.json({ ok: true, scores: result });
 }
