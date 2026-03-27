@@ -18,10 +18,13 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: 'platform required' }, { status: 400 });
   }
 
-  const raw = (await getRedis().hgetall<Record<string, string>>(queueKey(platform))) ?? {};
+  const raw = (await getRedis().hgetall<Record<string, QueueValue | string>>(queueKey(platform))) ?? {};
   const entries: Record<string, QueueValue> = {};
   for (const [itemId, val] of Object.entries(raw)) {
-    try { entries[itemId] = JSON.parse(val) as QueueValue; } catch { /* skip corrupt entries */ }
+    if (!val) continue;
+    try {
+      entries[itemId] = typeof val === 'string' ? JSON.parse(val) as QueueValue : val;
+    } catch { /* skip corrupt entries */ }
   }
 
   return NextResponse.json({ platform, entries });
@@ -48,7 +51,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   }
 
   const value: QueueValue = { itemDate, scheduled };
-  await getRedis().hset(queueKey(platform as Platform), { [itemId]: JSON.stringify(value) });
+  await getRedis().hset(queueKey(platform as Platform), { [itemId]: value });
   return NextResponse.json({ ok: true });
 }
 
