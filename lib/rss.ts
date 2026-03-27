@@ -83,7 +83,7 @@ export async function fetchFeedItems(feed: Feed): Promise<ParsedItem[]> {
     });
     if (!response.ok) return [];
     const xml = await response.text();
-    return parseXml(xml);
+    return parseXml(xml, feed.name);
   } catch {
     return [];
   }

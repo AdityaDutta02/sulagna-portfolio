@@ -1,7 +1,7 @@
 // lib/__tests__/rss.test.ts
 // @vitest-environment node
 
-import { describe, it, expect } from 'vitest';
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { parseXml, fetchFeedItems } from '../rss';
@@ -43,6 +43,21 @@ describe('parseXml — Atom', () => {
   it('handles rel="alternate" link on second entry', () => {
     const items = parseXml(atomXml);
     expect(items[1]!.url).toBe('https://example.com/ml-deploy');
+  });
+
+  it('falls back to <updated> when <published> is absent', () => {
+    const xml = `<?xml version="1.0"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <entry>
+    <title>Test</title>
+    <link href="https://example.com/test"/>
+    <summary>Summary</summary>
+    <updated>2024-03-01T12:00:00Z</updated>
+  </entry>
+</feed>`;
+    const items = parseXml(xml);
+    expect(items).toHaveLength(1);
+    expect(items[0]!.publishedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/);
   });
 });
 
@@ -94,5 +109,34 @@ describe('parseXml — edge cases', () => {
 describe('fetchFeedItems', () => {
   it('is exported as a function', () => {
     expect(typeof fetchFeedItems).toBe('function');
+  });
+
+  const mockFeed = { id: '1', name: 'Test Feed', url: 'https://example.com/feed', category: 'Test', weight: 3 as const, enabled: true };
+
+  beforeEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('returns [] on network error', async () => {
+    vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('Network error'));
+    const result = await fetchFeedItems(mockFeed);
+    expect(result).toEqual([]);
+  });
+
+  it('returns [] on non-OK HTTP response', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('Not Found', { status: 404 }));
+    const result = await fetchFeedItems(mockFeed);
+    expect(result).toEqual([]);
+  });
+
+  it('populates sourceLabel from feed.name', async () => {
+    const xml = `<?xml version="1.0"?>
+<rss version="2.0"><channel>
+  <item><title>T</title><link>https://x.com</link><description>D</description><pubDate>Thu, 01 Jan 2026 00:00:00 GMT</pubDate></item>
+</channel></rss>`;
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(xml, { status: 200 }));
+    const result = await fetchFeedItems(mockFeed);
+    expect(result).toHaveLength(1);
+    expect(result[0]!.sourceLabel).toBe('Test Feed');
   });
 });
