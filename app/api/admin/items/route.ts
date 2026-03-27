@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdminAuth } from '@/lib/require-admin-auth';
-import { redis } from '@/lib/redis';
+import { getRedis } from '@/lib/redis';
 import type { TrackedItem } from '@/lib/types';
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
@@ -12,10 +12,13 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: 'date (YYYY-MM-DD) required' }, { status: 400 });
   }
 
-  const raw = (await redis.hgetall<Record<string, string>>(`items:${date}`)) ?? {};
+  const raw = (await getRedis().hgetall<Record<string, TrackedItem | string>>(`items:${date}`)) ?? {};
   const items: TrackedItem[] = [];
   for (const val of Object.values(raw)) {
-    try { items.push(JSON.parse(val) as TrackedItem); } catch { /* skip corrupt */ }
+    if (!val) continue;
+    try {
+      items.push(typeof val === 'string' ? JSON.parse(val) as TrackedItem : val);
+    } catch { /* skip corrupt */ }
   }
   items.sort((a, b) => b.heuristicScore - a.heuristicScore);
 

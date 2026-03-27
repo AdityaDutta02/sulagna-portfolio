@@ -25,10 +25,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: 'itemId and date required' }, { status: 400 });
   }
 
-  const raw = await getRedis().hget<string>(`items:${date}`, itemId);
+  const raw = await getRedis().hget<TrackedItem | string>(`items:${date}`, itemId);
   if (!raw) return NextResponse.json({ error: 'Item not found' }, { status: 404 });
 
-  const item: TrackedItem = JSON.parse(raw) as TrackedItem;
+  const item: TrackedItem = typeof raw === 'string' ? JSON.parse(raw) as TrackedItem : raw;
 
   const { text } = await generateText({
     model: openrouter('qwen/qwen2.5-7b-instruct'),
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   };
 
   const updated: TrackedItem = { ...item, aiScore: result.composite };
-  await getRedis().hset(`items:${date}`, { [itemId]: JSON.stringify(updated) });
+  await getRedis().hset(`items:${date}`, { [itemId]: updated });
 
   return NextResponse.json({ ok: true, scores: result });
 }

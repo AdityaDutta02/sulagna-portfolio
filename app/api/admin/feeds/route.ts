@@ -7,13 +7,14 @@ import { DEFAULT_FEEDS } from '@/lib/feeds-default';
 import type { Feed } from '@/lib/types';
 
 async function loadFeeds(): Promise<Feed[]> {
-  const raw = await getRedis().get<string>('feeds');
+  const raw = await getRedis().get<Feed[] | string>('feeds');
   if (!raw) return DEFAULT_FEEDS;
+  if (Array.isArray(raw)) return raw;
   try { return JSON.parse(raw) as Feed[]; } catch { return DEFAULT_FEEDS; }
 }
 
 async function saveFeeds(feeds: Feed[]): Promise<void> {
-  await getRedis().set('feeds', JSON.stringify(feeds));
+  await getRedis().set('feeds', feeds);
 }
 
 // GET — list all feeds

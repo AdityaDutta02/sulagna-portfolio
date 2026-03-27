@@ -31,10 +31,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: 'itemId, date, platform required' }, { status: 400 });
   }
 
-  const raw = await getRedis().hget<string>(`items:${date}`, itemId);
+  const raw = await getRedis().hget<TrackedItem | string>(`items:${date}`, itemId);
   if (!raw) return NextResponse.json({ error: 'Item not found' }, { status: 404 });
 
-  const item: TrackedItem = JSON.parse(raw) as TrackedItem;
+  const item: TrackedItem = typeof raw === 'string' ? JSON.parse(raw) as TrackedItem : raw;
   const guide = (await getRedis().get<string>(`styleguide:${platform}`)) ?? '';
 
   const systemPrompt = guide
@@ -66,7 +66,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
   // Persist draft back to item in Redis
   const updated: TrackedItem = { ...item, draft, platform: platform as Platform };
-  await getRedis().hset(`items:${date}`, { [itemId]: JSON.stringify(updated) });
+  await getRedis().hset(`items:${date}`, { [itemId]: updated });
 
   return NextResponse.json({ ok: true, draft });
 }

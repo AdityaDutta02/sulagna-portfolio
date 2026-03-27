@@ -17,7 +17,7 @@ function todayKey(): string {
 }
 
 async function storeItem(key: string, item: TrackedItem): Promise<void> {
-  await getRedis().hset(key, { [item.id]: JSON.stringify(item) });
+  await getRedis().hset(key, { [item.id]: item });
   await getRedis().expire(key, TTL_14_DAYS);
 }
 
@@ -50,13 +50,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   const now = new Date();
 
   // Load feeds from Redis; seed defaults on first run
-  let feedsRaw = await getRedis().get<string>('feeds');
-  if (!feedsRaw) {
-    const serialized = JSON.stringify(DEFAULT_FEEDS);
-    await getRedis().set('feeds', serialized);
-    feedsRaw = serialized;
+  let feedsData = await getRedis().get<Feed[] | string>('feeds');
+  if (!feedsData) {
+    await getRedis().set('feeds', DEFAULT_FEEDS);
+    feedsData = DEFAULT_FEEDS;
   }
-  const feeds: Feed[] = JSON.parse(feedsRaw) as Feed[];
+  const feeds: Feed[] = Array.isArray(feedsData)
+    ? feedsData
+    : JSON.parse(feedsData) as Feed[];
   const enabledFeeds = feeds.filter((f) => f.enabled);
 
   // Fetch all enabled feeds in parallel; skip failures
@@ -68,10 +69,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   );
 
   // Load existing URLs to dedup
-  const existingRaw = (await getRedis().hgetall<Record<string, string>>(key)) ?? {};
+  const existingRaw = (await getRedis().hgetall<Record<string, TrackedItem | string>>(key)) ?? {};
   const existingUrls = new Set(
     Object.values(existingRaw).map((v) => {
-      try { return (JSON.parse(v) as TrackedItem).url; } catch { return ''; }
+      if (!v) return '';
+      try {
+        const item = typeof v === 'string' ? JSON.parse(v) as TrackedItem : v;
+        return item.url ?? '';
+      } catch { return ''; }
     })
   );
 
