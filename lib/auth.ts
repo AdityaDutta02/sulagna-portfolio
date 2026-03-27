@@ -25,10 +25,14 @@ export function verifySession(
   secret: string
 ): boolean {
   const expected = signSession(password, secret);
+  // Compare the hex strings as UTF-8 buffers — both are ASCII, fixed 64 chars.
+  // Using 'hex' decoding on cookieValue silently drops non-hex chars, which
+  // could allow a shorter input to pass timingSafeEqual; utf8 avoids that.
+  if (cookieValue.length !== expected.length) return false;
   try {
     return timingSafeEqual(
-      Buffer.from(cookieValue, 'hex'),
-      Buffer.from(expected, 'hex')
+      Buffer.from(cookieValue, 'utf8'),
+      Buffer.from(expected, 'utf8')
     );
   } catch {
     return false;

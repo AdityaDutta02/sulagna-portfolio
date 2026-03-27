@@ -1,3 +1,4 @@
+import { timingSafeEqual } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { signSession } from '@/lib/auth';
 
@@ -29,7 +30,21 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       ? (body as Record<string, unknown>)['password']
       : undefined;
 
-  if (typeof submitted !== 'string' || submitted !== process.env.ADMIN_PASSWORD) {
+  const adminPassword = process.env.ADMIN_PASSWORD;
+  if (typeof submitted !== 'string' || !adminPassword) {
+    return NextResponse.json({ error: 'Invalid password' }, { status: 401 });
+  }
+  const submittedBuf = Buffer.from(submitted, 'utf8');
+  const passwordBuf = Buffer.from(adminPassword, 'utf8');
+  let passwordMatches = false;
+  if (submittedBuf.length === passwordBuf.length) {
+    try {
+      passwordMatches = timingSafeEqual(submittedBuf, passwordBuf);
+    } catch {
+      passwordMatches = false;
+    }
+  }
+  if (!passwordMatches) {
     return NextResponse.json({ error: 'Invalid password' }, { status: 401 });
   }
 
