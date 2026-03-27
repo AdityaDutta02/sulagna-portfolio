@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Test Atom Feed</title>
+  <entry>
+    <title>SQL Performance Tips</title>
+    <link href="https://example.com/sql-tips"/>
+    <summary>Ten tips for faster SQL queries.</summary>
+    <published>2024-01-15T10:00:00Z</published>
+  </entry>
+  <entry>
+    <title>ML Model Deployment</title>
+    <link rel="alternate" href="https://example.com/ml-deploy"/>
+    <summary>How to deploy machine learning models at scale.</summary>
+    <updated>2024-01-14T09:00:00Z</updated>
+  </entry>
+</feed>

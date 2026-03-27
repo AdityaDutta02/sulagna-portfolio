@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Test Feed</title>
+    <link>https://example.com</link>
+    <item>
+      <title>Python 3.13 Released</title>
+      <link>https://example.com/python-313</link>
+      <description>Python 3.13 brings new features including improved error messages.</description>
+      <pubDate>Mon, 01 Jan 2024 12:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Power BI Update</title>
+      <link>https://example.com/powerbi-update</link>
+      <description>New Power BI features for data analysts.</description>
+      <pubDate>Sun, 31 Dec 2023 08:00:00 GMT</pubDate>
+    </item>
+  </channel>
+</rss>
