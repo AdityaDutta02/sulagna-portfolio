@@ -24,3 +24,28 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
   return NextResponse.json({ date, items });
 }
+
+// PUT /api/admin/items — save edited draft back to item
+// Body: { itemId, date, draft }
+export async function PUT(request: NextRequest): Promise<NextResponse> {
+  const authError = await requireAdminAuth();
+  if (authError) return authError;
+
+  let body: unknown;
+  try { body = await request.json(); } catch {
+    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
+  }
+
+  const { itemId, date, draft } = (body ?? {}) as Record<string, unknown>;
+  if (typeof itemId !== 'string' || typeof date !== 'string' || typeof draft !== 'string') {
+    return NextResponse.json({ error: 'itemId, date, draft required' }, { status: 400 });
+  }
+
+  const raw = await getRedis().hget<TrackedItem | string>(`items:${date}`, itemId);
+  if (!raw) return NextResponse.json({ error: 'Item not found' }, { status: 404 });
+
+  const item: TrackedItem = typeof raw === 'string' ? JSON.parse(raw) as TrackedItem : raw;
+  await getRedis().hset(`items:${date}`, { [itemId]: { ...item, draft } });
+
+  return NextResponse.json({ ok: true });
+}

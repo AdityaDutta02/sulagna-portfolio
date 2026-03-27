@@ -40,6 +40,8 @@ export function GenerateClient(): React.JSX.Element {
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   const loadItems = useCallback(async () => {
     setLoading(true);
@@ -103,6 +105,26 @@ export function GenerateClient(): React.JSX.Element {
       setError(err instanceof Error ? err.message : 'Generation failed — try again');
     } finally {
       setGenerating(false);
+    }
+  }
+
+  async function handleSave(): Promise<void> {
+    if (!itemId || !draft) return;
+    setSaving(true);
+    setSaved(false);
+    try {
+      const res = await fetch('/api/admin/items', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ itemId, date, draft }),
+      });
+      if (!res.ok) throw new Error('Save failed');
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Save failed');
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -213,7 +235,7 @@ export function GenerateClient(): React.JSX.Element {
         )}
         <textarea
           value={draft}
-          readOnly
+          onChange={(e) => { setDraft(e.target.value); setSaved(false); }}
           placeholder={generating ? 'Generating…' : 'Draft will appear here'}
           style={{
             width: '100%',
@@ -231,24 +253,43 @@ export function GenerateClient(): React.JSX.Element {
           }}
         />
         {draft && (
-          <button
-            type="button"
-            onClick={() => { void handleCopy(); }}
-            style={{
-              marginTop: '0.75rem',
-              padding: '0.5rem 1.25rem',
-              background: copied ? 'var(--green)' : 'var(--amber)',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '4px',
-              fontFamily: 'var(--font-mono)',
-              fontSize: '13px',
-              cursor: 'pointer',
-              transition: 'background 0.2s',
-            }}
-          >
-            {copied ? 'Copied ✓' : 'Copy to clipboard'}
-          </button>
+          <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.75rem' }}>
+            <button
+              type="button"
+              onClick={() => { void handleSave(); }}
+              disabled={saving}
+              style={{
+                padding: '0.5rem 1.25rem',
+                background: saved ? 'var(--green)' : 'var(--bg)',
+                color: saved ? '#fff' : 'var(--text-muted)',
+                border: '1px solid var(--border)',
+                borderRadius: '4px',
+                fontFamily: 'var(--font-mono)',
+                fontSize: '13px',
+                cursor: saving ? 'not-allowed' : 'pointer',
+                opacity: saving ? 0.6 : 1,
+              }}
+            >
+              {saving ? 'Saving…' : saved ? 'Saved ✓' : 'Save draft'}
+            </button>
+            <button
+              type="button"
+              onClick={() => { void handleCopy(); }}
+              style={{
+                padding: '0.5rem 1.25rem',
+                background: copied ? 'var(--green)' : 'var(--amber)',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '4px',
+                fontFamily: 'var(--font-mono)',
+                fontSize: '13px',
+                cursor: 'pointer',
+                transition: 'background 0.2s',
+              }}
+            >
+              {copied ? 'Copied ✓' : 'Copy'}
+            </button>
+          </div>
         )}
       </div>
     </div>
