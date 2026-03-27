@@ -36,11 +36,14 @@ export function GenerateClient(): React.JSX.Element {
   const [itemId, setItemId] = useState(searchParams.get('itemId') ?? '');
   const [platform, setPlatform] = useState<Platform>('linkedin');
   const [draft, setDraft] = useState('');
+  const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
   const loadItems = useCallback(async () => {
+    setLoading(true);
+    setError(null);
     try {
       const res = await fetch(`/api/admin/items?date=${date}`);
       if (!res.ok) throw new Error(`Failed to load items (${res.status})`);
@@ -48,10 +51,21 @@ export function GenerateClient(): React.JSX.Element {
       setItems(data.items ?? []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load items');
+    } finally {
+      setLoading(false);
     }
   }, [date]);
 
   useEffect(() => { void loadItems(); }, [loadItems]);
+
+  useEffect(() => {
+    setItemId('');
+    setDraft('');
+  }, [date]);
+
+  useEffect(() => {
+    setError(null);
+  }, [itemId]);
 
   // Pre-fill draft if item already has one
   useEffect(() => {
@@ -63,7 +77,7 @@ export function GenerateClient(): React.JSX.Element {
   async function handleGenerate(): Promise<void> {
     if (!itemId) return;
     setGenerating(true);
-    setError('');
+    setError(null);
     setDraft('');
     try {
       const res = await fetch('/api/admin/generate', {
@@ -114,9 +128,10 @@ export function GenerateClient(): React.JSX.Element {
           <select
             value={itemId}
             onChange={(e) => setItemId(e.target.value)}
+            disabled={loading}
             style={inputStyle}
           >
-            <option value="">Select item…</option>
+            <option value="">{loading ? 'Loading…' : 'Select item…'}</option>
             {items.map((item) => (
               <option key={item.id} value={item.id}>
                 [{item.heuristicScore}] {item.title.slice(0, 60)}
@@ -136,6 +151,7 @@ export function GenerateClient(): React.JSX.Element {
             {PLATFORMS.map((p) => (
               <button
                 key={p}
+                type="button"
                 onClick={() => setPlatform(p)}
                 style={{
                   padding: '0.375rem 0.75rem',
@@ -155,6 +171,7 @@ export function GenerateClient(): React.JSX.Element {
           </div>
         </div>
         <button
+          type="button"
           onClick={() => { void handleGenerate(); }}
           disabled={!itemId || generating}
           style={{
@@ -207,6 +224,7 @@ export function GenerateClient(): React.JSX.Element {
         />
         {draft && (
           <button
+            type="button"
             onClick={() => { void handleCopy(); }}
             style={{
               marginTop: '0.75rem',
