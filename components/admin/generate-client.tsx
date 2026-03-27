@@ -72,7 +72,15 @@ export function GenerateClient(): React.JSX.Element {
     if (!itemId) return;
     const item = items.find((i) => i.id === itemId);
     if (item?.draft) setDraft(item.draft);
+    else setDraft('');
   }, [itemId, items]);
+
+  // Auto-select first item with a saved draft when no item is chosen
+  useEffect(() => {
+    if (itemId || items.length === 0) return;
+    const withDraft = items.find((i) => i.draft);
+    if (withDraft) setItemId(withDraft.id);
+  }, [items]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleGenerate(): Promise<void> {
     if (!itemId) return;
@@ -134,7 +142,7 @@ export function GenerateClient(): React.JSX.Element {
             <option value="">{loading ? 'Loading…' : 'Select item…'}</option>
             {items.map((item) => (
               <option key={item.id} value={item.id}>
-                [{item.heuristicScore}] {item.title.slice(0, 60)}
+                {item.draft ? '★ ' : ''}{`[${item.heuristicScore}] ${item.title.slice(0, 60)}`}
               </option>
             ))}
           </select>
