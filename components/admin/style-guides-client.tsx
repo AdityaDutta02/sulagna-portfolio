@@ -15,10 +15,12 @@ export function StyleGuidesClient(): React.JSX.Element {
   const [saving, setSaving] = useState(false);
   const [savedMsg, setSavedMsg] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => { void loadAll(); }, []);
 
   async function loadAll(): Promise<void> {
+    setLoading(true);
     setError(null);
     try {
       const results = await Promise.all(
@@ -32,6 +34,8 @@ export function StyleGuidesClient(): React.JSX.Element {
       setGuides(Object.fromEntries(results) as Record<Platform, string>);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load style guides');
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -54,6 +58,8 @@ export function StyleGuidesClient(): React.JSX.Element {
       setSaving(false);
     }
   }
+
+  if (loading) return <p style={{ color: 'var(--text-muted)', fontSize: '13px' }}>Loading…</p>;
 
   return (
     <div>
@@ -89,7 +95,8 @@ export function StyleGuidesClient(): React.JSX.Element {
 
       {/* Editor */}
       <textarea
-        value={guides[activePlatform] || EMPTY_HINT}
+        value={guides[activePlatform]}
+        placeholder={EMPTY_HINT}
         onChange={(e) =>
           setGuides((prev) => ({ ...prev, [activePlatform]: e.target.value }))
         }
