@@ -18,8 +18,20 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return {
     title: post.title,
     description: post.excerpt,
+    keywords: post.tags,
+    authors: [{ name: 'Sulagna Dey', url: 'https://sulagna.dev' }],
     alternates: { canonical: `https://sulagna.dev/blog/${slug}` },
-    openGraph: { images: [{ url: `/blog/og/${slug}`, width: 1200, height: 630 }] },
+    openGraph: {
+      type: 'article',
+      title: post.title,
+      description: post.excerpt,
+      publishedTime: post.date,
+      modifiedTime: post.updated ?? post.date,
+      authors: ['Sulagna Dey'],
+      tags: post.tags,
+      images: [{ url: `/blog/og/${slug}`, width: 1200, height: 630, alt: post.title }],
+    },
+    twitter: { card: 'summary_large_image', title: post.title, description: post.excerpt, images: [`/blog/og/${slug}`] },
   };
 }
 
@@ -35,16 +47,29 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
   const allPosts = getAllPosts();
   const related = allPosts.filter(p => p.slug !== post.slug).slice(0, 3);
 
+  const wordCount = post.content.trim().split(/\s+/).length;
   const postJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'BlogPosting',
     headline: post.title,
     description: post.excerpt,
-    author: { '@type': 'Person', name: 'Sulagna Dey', jobTitle: 'Data Analyst', url: 'https://sulagna.dev' },
+    author: {
+      '@type': 'Person',
+      name: 'Sulagna Dey',
+      jobTitle: 'Data Analyst & Power BI Specialist',
+      url: 'https://sulagna.dev',
+      sameAs: ['https://linkedin.com/in/sulagna-dey'],
+    },
+    publisher: { '@type': 'Person', name: 'Sulagna Dey', url: 'https://sulagna.dev' },
     datePublished: post.date,
     dateModified: post.updated ?? post.date,
     image: `https://sulagna.dev/blog/og/${post.slug}`,
     keywords: post.tags.join(', '),
+    wordCount,
+    articleSection: post.topic,
+    inLanguage: 'en',
+    url: `https://sulagna.dev/blog/${post.slug}`,
+    mainEntityOfPage: { '@type': 'WebPage', '@id': `https://sulagna.dev/blog/${post.slug}` },
   };
 
   return (

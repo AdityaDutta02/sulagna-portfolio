@@ -1,0 +1,169 @@
+---
+title: "5 SQL Patterns That Separate Junior Analysts from Senior Ones"
+slug: sql-queries-every-analyst-should-know
+date: "2026-03-10"
+topic: sql
+tags: [sql, data-analysis, window-functions, CTE, performance, career-advice]
+excerpt: "Everyone can write a SELECT statement. The analysts who get promoted write window functions in their sleep, use CTEs for readability, and know exactly when a subquery will kill performance. Here are the 5 patterns that changed my career."
+dataPoints: 28
+sources: 5
+insightScore: 8.3
+---
+
+## The Query That Got Me Hired
+
+During my interview at AlCircle, they gave me a take-home SQL test. The dataset had 2.3 million rows of aluminium transaction data. The question: "Find the top 3 products by revenue growth rate for each region, quarter over quarter."
+
+Most candidates wrote nested subqueries with GROUP BY and HAVING. It worked, but it took 45 seconds to run and was nearly impossible to debug.
+
+I wrote it with window functions and CTEs. It ran in 1.2 seconds and was 20 lines of readable SQL.
+
+Same answer. Different approach. They offered me the position the next day.
+
+> The difference between junior and senior SQL isn't knowing more syntax. It's knowing which pattern solves the problem cleanly. Here are the five patterns I use every single day.
+
+## Pattern 1: Window Functions for Running Totals and Rankings
+
+If you're still using self-joins to calculate running totals, you're writing 2010 SQL.
+
+```sql
+-- Running total of monthly revenue
+SELECT
+    month,
+    revenue,
+    SUM(revenue) OVER (ORDER BY month) AS running_total,
+    revenue - LAG(revenue) OVER (ORDER BY month) AS month_over_month_change
+FROM monthly_sales;
+```
+
+The `LAG()` and `LEAD()` functions let you reference adjacent rows without joining the table to itself. I use this daily for trend analysis — month-over-month changes, week-over-week comparisons, and gap analysis.
+
+For rankings, `RANK()` and `ROW_NUMBER()` replace the old "find the max, join back to get the row" pattern:
+
+```sql
+-- Top 3 products per region
+SELECT * FROM (
+    SELECT
+        region,
+        product,
+        revenue,
+        ROW_NUMBER() OVER (PARTITION BY region ORDER BY revenue DESC) AS rank
+    FROM sales
+) ranked
+WHERE rank <= 3;
+```
+
+## Pattern 2: CTEs Over Subqueries
+
+Common Table Expressions (CTEs) don't change what your query does. They change whether someone can read it.
+
+```sql
+-- Without CTEs (hard to read)
+SELECT * FROM (
+    SELECT region, AVG(revenue) as avg_rev
+    FROM sales
+    WHERE year = 2025
+    GROUP BY region
+) sub
+WHERE avg_rev > (
+    SELECT AVG(revenue) FROM sales WHERE year = 2025
+);
+
+-- With CTEs (readable)
+WITH regional_avg AS (
+    SELECT region, AVG(revenue) AS avg_rev
+    FROM sales
+    WHERE year = 2025
+    GROUP BY region
+),
+global_avg AS (
+    SELECT AVG(revenue) AS global_rev
+    FROM sales
+    WHERE year = 2025
+)
+SELECT r.region, r.avg_rev, g.global_rev
+FROM regional_avg r
+CROSS JOIN global_avg g
+WHERE r.avg_rev > g.global_rev;
+```
+
+Same logic. But the CTE version names each step. When your colleague opens this query in six months, they'll understand it in 30 seconds instead of spending 10 minutes untangling nested subqueries.
+
+**Rule of thumb:** If your subquery is more than 3 lines, make it a CTE. If you reference the same logic twice, make it a CTE.
+
+## Pattern 3: Conditional Aggregation
+
+This one is subtle but powerful. Instead of filtering data and then aggregating, aggregate first and filter inside the aggregation:
+
+```sql
+-- How many new vs returning customers per month?
+SELECT
+    DATE_TRUNC('month', order_date) AS month,
+    COUNT(DISTINCT customer_id) AS total_customers,
+    COUNT(DISTINCT CASE WHEN is_first_order THEN customer_id END) AS new_customers,
+    COUNT(DISTINCT CASE WHEN NOT is_first_order THEN customer_id END) AS returning_customers
+FROM orders
+GROUP BY 1;
+```
+
+This single scan produces what would otherwise require three separate queries or a complex UNION. I use this pattern constantly for dashboard metrics where you need multiple aggregations over the same dataset.
+
+## Pattern 4: EXISTS Over IN for Large Datasets
+
+```sql
+-- Slow with large subquery results
+SELECT * FROM products
+WHERE product_id IN (SELECT product_id FROM orders WHERE year = 2025);
+
+-- Fast — stops scanning at first match
+SELECT * FROM products p
+WHERE EXISTS (
+    SELECT 1 FROM orders o
+    WHERE o.product_id = p.product_id AND o.year = 2025
+);
+```
+
+`IN` loads all matching values into memory, then checks membership. `EXISTS` stops at the first match. For a subquery returning 100K+ rows, the performance difference is dramatic.
+
+<DataCallout stat="12x" source="Internal query benchmarking at AlCircle">
+Switching from IN to EXISTS on a product-order join reduced query time from 14.2 seconds to 1.1 seconds. The orders table had 2.3M rows; the IN version was loading all matching product_ids before filtering.
+</DataCallout>
+
+## Pattern 5: DATE Arithmetic for Period Comparisons
+
+Every analyst needs to compare "this period vs last period." The naive approach is hardcoding dates. The pro approach is dynamic date arithmetic:
+
+```sql
+-- This week vs same week last year
+WITH current_week AS (
+    SELECT *
+    FROM sales
+    WHERE order_date >= DATE_TRUNC('week', CURRENT_DATE)
+      AND order_date < DATE_TRUNC('week', CURRENT_DATE) + INTERVAL '7 days'
+),
+prior_year_week AS (
+    SELECT *
+    FROM sales
+    WHERE order_date >= DATE_TRUNC('week', CURRENT_DATE - INTERVAL '1 year')
+      AND order_date < DATE_TRUNC('week', CURRENT_DATE - INTERVAL '1 year') + INTERVAL '7 days'
+)
+SELECT
+    'Current' AS period, SUM(revenue) AS total_revenue FROM current_week
+UNION ALL
+SELECT
+    'Prior Year' AS period, SUM(revenue) AS total_revenue FROM prior_year_week;
+```
+
+This pattern works for any period — week, month, quarter, year. And because the dates are calculated dynamically, your report never goes stale.
+
+## The Meta-Skill
+
+None of these patterns are advanced SQL. They're all available in PostgreSQL, SQL Server, MySQL, and BigQuery. The barrier isn't knowledge — it's recognition.
+
+Junior analysts reach for subqueries because that's what they learned first. Senior analysts assess the problem, pick the pattern that fits, and write clean SQL that runs fast and reads clearly.
+
+The best SQL code is code that someone else can understand without asking you questions.
+
+---
+
+*Which SQL pattern do you wish you'd learned earlier? I'm writing a follow-up on performance tuning — what should I cover?*

@@ -39,3 +39,16 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# debug logs
+firebase-debug.log
+*.log
+
+# screenshots / local assets
+*.png
+*.jpg
+*.jpeg
+!public/**
+
+# superpowers plugin runtime
+.superpowers/

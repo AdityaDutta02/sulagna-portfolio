@@ -9,18 +9,22 @@ export default function Dashboard() {
     '@context': 'https://schema.org',
     '@type': 'Person',
     name: 'Sulagna Dey',
-    jobTitle: 'Data Analyst',
+    jobTitle: 'Data Analyst & Power BI Specialist',
+    description: 'Data Analyst at AlCircle specializing in aluminium market intelligence, Power BI dashboards, and data automation. PL-300 Certified. Gold Medalist from Midnapore College.',
     url: 'https://sulagna.dev',
     sameAs: ['https://linkedin.com/in/sulagna-dey'],
+    image: 'https://sulagna.dev/og',
     alumniOf: [
       { '@type': 'CollegeOrUniversity', name: "St. Xavier's College, Kolkata" },
       { '@type': 'CollegeOrUniversity', name: 'Midnapore College' },
     ],
-    knowsAbout: ['Power BI', 'Data Analysis', 'Python', 'SQL', 'Tableau', 'Machine Learning', 'Data Analysis', 'Market Analysis', 'Power BI', 'Aluminium Market Intelligence', 'Data Visualization'],
-    hasCredential: {
-      '@type': 'EducationalOccupationalCredential',
-      name: 'Microsoft Power BI PL-300',
-    },
+    knowsAbout: ['Power BI', 'Data Analysis', 'Python', 'SQL', 'Tableau', 'Machine Learning', 'Market Analysis', 'Aluminium Market Intelligence', 'Data Visualization', 'DAX', 'ETL', 'Data Automation'],
+    hasCredential: [
+      { '@type': 'EducationalOccupationalCredential', name: 'Microsoft Power BI PL-300' },
+      { '@type': 'EducationalOccupationalCredential', name: 'Tata Data Visualization' },
+      { '@type': 'EducationalOccupationalCredential', name: 'Deloitte Analytics' },
+    ],
+    worksFor: { '@type': 'Organization', name: 'AlCircle' },
   };
 
   return (

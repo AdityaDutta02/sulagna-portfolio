@@ -1,0 +1,125 @@
+---
+title: "Building a Real-Time Aluminium Market Dashboard That Predicts Price Shifts"
+slug: aluminium-market-intelligence-with-data
+date: "2026-03-25"
+topic: market-intelligence
+tags: [market-intelligence, aluminium, power-bi, commodity-pricing, data-automation, ETL]
+excerpt: "How I built an automated aluminium market intelligence system at AlCircle that ingests 500+ data sources daily, detects price anomalies within 2 hours, and gives our team a 3-day lead on market shifts that competitors report on a week later."
+dataPoints: 512
+sources: 14
+insightScore: 8.5
+---
+
+## When Your Competitors Report Yesterday's News
+
+In the aluminium flat-rolled products market, a price shift that hits the trade press on Friday actually started moving on Tuesday. If you're reading about it when everyone else reads about it, you're already behind.
+
+At AlCircle, where I work as a data analyst, our job is to detect these shifts before they become public knowledge. That means processing data from over 500 sources — LME prices, regional spot transactions, inventory reports, shipping manifests, production data from smelters — and surfacing anomalies within hours, not days.
+
+When I joined, this was mostly manual. Analysts tracked spreadsheets, monitored trade publications, and used gut feeling to spot patterns. Now it's a system.
+
+> The dashboard I built ingests 500+ sources daily, automatically flags anomalies using statistical process control, and surfaces the top 5 signals every morning before the team's standup. Average time from anomaly to alert: 2 hours.
+
+## The Data Problem
+
+Aluminium pricing data is messy. Not "a few null values" messy — structurally chaotic.
+
+Different regions report in different units (tonnes, pounds, kilograms). Some sources update daily, some weekly, some "whenever we feel like it." Currency conversions add noise. Freight costs vary by port. And the LME benchmark only tells part of the story — regional premiums, alloy surcharges, and fabrication costs create hundreds of local price points that don't always move together.
+
+Here's the data architecture I built to tame this:
+
+### Layer 1: Raw Ingestion
+
+Every source gets its own Python connector. No exceptions. Some pull from APIs, some parse HTML, some read emailed CSVs (yes, really). Each connector runs independently and writes to a staging table with source metadata:
+
+```
+Source → Connector → Staging Table → Validation → Clean Table
+                      (raw + metadata)              (standardized)
+```
+
+The staging table preserves the original data exactly as received. If something looks wrong downstream, we can always trace back to the raw record.
+
+### Layer 2: Standardization
+
+All prices normalize to USD per metric tonne. All dates normalize to ISO 8601. All region codes map to a standard 3-letter code. This layer is pure ETL — extract, transform, load — with no business logic.
+
+```python
+# Standardization rules (simplified)
+UNIT_CONVERSIONS = {
+    'usd/lb': 2204.62,      # multiply to get usd/mt
+    'usd/kg': 1000,
+    'eur/mt': 'FX_EUR_USD',  # lookup from FX table
+    'gbp/mt': 'FX_GBP_USD',
+}
+```
+
+### Layer 3: Anomaly Detection
+
+This is where it gets interesting. I use statistical process control (SPC) — not machine learning, just math — to detect when a price moves outside its normal range.
+
+```python
+import numpy as np
+
+def detect_anomaly(prices: np.ndarray, window: int = 30) -> dict:
+    """Detect price anomaly using SPC control charts."""
+    recent = prices[-window:]
+    mean = np.mean(recent)
+    std = np.std(recent)
+    current = prices[-1]
+
+    upper_3sigma = mean + 3 * std
+    lower_3sigma = mean - 3 * std
+
+    return {
+        'current': current,
+        'mean': mean,
+        'upper_control': upper_3sigma,
+        'lower_control': lower_3sigma,
+        'is_anomaly': current > upper_3sigma or current < lower_3sigma,
+        'z_score': (current - mean) / std if std > 0 else 0,
+    }
+```
+
+Why SPC instead of ML? Three reasons:
+
+1. **Interpretability.** When I alert the team "FRP prices in Southeast Asia are 2.8 sigma above the 30-day mean," they immediately know what that means. "The ML model flagged an anomaly" tells them nothing.
+
+2. **Speed.** SPC runs in milliseconds. No model training, no feature engineering, no GPU. It processes 500 sources in under 2 minutes.
+
+3. **Accuracy for this use case.** Commodity price anomalies are almost always simple statistical outliers. You don't need a neural network to detect that a price jumped 15% overnight.
+
+## The Dashboard Design
+
+The dashboard has exactly three sections. No more.
+
+**Section 1: Morning Brief.** Five cards showing the most important signals from the last 24 hours. Each card has: the metric, the current value, the anomaly score, and a one-line explanation. This is what the team reads at standup.
+
+**Section 2: Price Monitor.** A grid of sparklines showing 30-day price trends for every major product/region combination. Green dot = normal. Red dot = anomaly. Click to drill through to the full analysis.
+
+**Section 3: Trend Tracker.** Week-over-week directional changes across all tracked metrics. Arrows and colour only — no numbers. This is the "what's moving" view for quick pattern recognition.
+
+The entire dashboard loads in under 2 seconds because the heavy lifting happens in the Python pipeline overnight. Power BI is just the display layer.
+
+## The Results
+
+| Metric | Before | After |
+|--------|--------|-------|
+| Time to detect price shift | 5-7 days | 2 hours |
+| Data sources tracked | ~120 | 500+ |
+| Manual analyst hours/week | 25+ | 4 (review only) |
+| Anomaly detection accuracy | Gut feeling | 94% precision |
+| Competitor lead time | -3 days (lagging) | +3 days (leading) |
+
+The "+3 days leading" number is the one that matters. When a regional premium in Southeast Asia starts moving on Tuesday, our team knows by Tuesday evening. Competitors reading trade publications find out Friday or Monday. That 3-day window is the entire value proposition.
+
+## What I'd Do Differently
+
+**Start with the decision, not the data.** My first version tried to track everything. The current version tracks only what drives pricing decisions. Fewer metrics, better signal.
+
+**Automate the boring parts first.** I spent my first two weeks automating data ingestion (the boring part) before building the dashboard (the fun part). Most people do it backwards.
+
+**Build for the person who reads it at 7 AM.** If your dashboard requires coffee and concentration to understand, it's too complex. The morning brief has five cards, each readable in 5 seconds.
+
+---
+
+*If you work in commodity analytics, what's your biggest data ingestion headache? I'm always looking for new edge cases.*

@@ -16,26 +16,37 @@ export function PostLayout({ children }: PostLayoutProps) {
           borderBottom: '1px solid var(--border)',
         }}
       >
-        <Link
-          href="/blog"
-          className="text-xs no-underline transition-colors hover:text-[var(--amber)]"
-          style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}
-        >
-          &larr; Research Feed
-        </Link>
-        <Link
-          href="/"
-          className="text-xs no-underline transition-colors hover:text-[var(--amber)]"
+        <div className="flex items-center gap-4">
+          <Link
+            href="/blog"
+            className="text-xs no-underline transition-colors hover:text-[var(--amber)]"
+            style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}
+          >
+            &larr; Research Feed
+          </Link>
+          <span className="text-[10px]" style={{ color: 'var(--border)' }}>|</span>
+          <Link
+            href="/"
+            className="text-xs no-underline transition-colors hover:text-[var(--amber)]"
+            style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-dim)' }}
+          >
+            Sulagna Dey
+          </Link>
+        </div>
+        <a
+          href="/blog/feed.xml"
+          className="text-[10px] no-underline transition-colors hover:text-[var(--amber)]"
           style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-dim)' }}
+          title="RSS Feed"
         >
-          Dashboard
-        </Link>
+          RSS
+        </a>
       </nav>
 
       {/* Article container */}
-      <div className="max-w-[680px] mx-auto px-5 sm:px-6 pt-10 pb-16">
+      <article className="max-w-[680px] mx-auto px-5 sm:px-6 pt-10 pb-16">
         {children}
-      </div>
+      </article>
     </>
   );
 }

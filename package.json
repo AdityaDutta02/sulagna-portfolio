@@ -10,6 +10,8 @@
     "test": "vitest"
   },
   "dependencies": {
+    "@keystatic/core": "^0.5.50",
+    "@keystatic/next": "^5.0.4",
     "@next/mdx": "^16.2.0",
     "@openrouter/ai-sdk-provider": "^2.3.3",
     "@upstash/redis": "^1.37.0",

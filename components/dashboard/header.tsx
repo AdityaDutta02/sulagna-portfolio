@@ -63,7 +63,18 @@ export function Header() {
           </span>
         ))}
       </div>
-      <Link href="/blog" className="text-[10px] no-underline transition-colors" style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-dim)' }}>Research Feed →</Link>
+      <Link
+        href="/blog"
+        className="text-[10px] font-semibold no-underline transition-all px-3 py-1.5 rounded-lg hover:-translate-y-px"
+        style={{
+          fontFamily: 'var(--font-mono)',
+          color: 'var(--amber)',
+          background: 'var(--amber-glow)',
+          border: '1px solid var(--amber-light)',
+        }}
+      >
+        Research Feed &rarr;
+      </Link>
     </header>
   );
 }

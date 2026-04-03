@@ -4,8 +4,10 @@ import { verifySession } from './lib/auth';
 export function proxy(request: NextRequest): NextResponse {
   const { pathname } = request.nextUrl;
 
-  // Only guard /admin/* routes
-  if (!pathname.startsWith('/admin')) return NextResponse.next();
+  // Guard /admin/* and /keystatic/* with the same admin session
+  const isAdminRoute = pathname.startsWith('/admin');
+  const isKeystaticlRoute = pathname.startsWith('/keystatic');
+  if (!isAdminRoute && !isKeystaticlRoute) return NextResponse.next();
 
   // Allow login page through unconditionally
   if (pathname === '/admin/login') return NextResponse.next();
@@ -21,4 +23,4 @@ export function proxy(request: NextRequest): NextResponse {
   return NextResponse.next();
 }
 
-export const config = { matcher: ['/admin/:path*'] };
+export const config = { matcher: ['/admin/:path*', '/keystatic/:path*'] };

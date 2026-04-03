@@ -10,11 +10,12 @@ interface ContactLinkProps {
   colSpan?: boolean;
   primary?: boolean;
   newTab?: boolean;
+  download?: string;
   testId: string;
 }
 
 function ContactLink(props: ContactLinkProps) {
-  const { href, label, colSpan = false, primary = false, newTab = false, testId } = props;
+  const { href, label, colSpan = false, primary = false, newTab = false, download, testId } = props;
 
   const baseStyle: React.CSSProperties = primary
     ? { background: 'var(--amber-decorative)', borderColor: 'var(--amber-decorative)', color: 'var(--text)' }
@@ -41,6 +42,7 @@ function ContactLink(props: ContactLinkProps) {
       href={href}
       target={newTab ? '_blank' : undefined}
       rel={newTab ? 'noopener noreferrer' : undefined}
+      download={download ?? undefined}
       className={`${colSpan ? 'col-span-2 ' : ''}flex flex-1 items-center justify-center gap-1.5 rounded-lg border px-2.5 py-3 text-center no-underline transition-all duration-200 hover:-translate-y-0.5`}
       style={{ ...baseStyle, fontSize: '11px', fontWeight: primary ? 600 : 500 }}
       onMouseEnter={handleMouseEnter}
@@ -80,7 +82,7 @@ export function ContactTile({ className = '' }: ContactTileProps) {
 
       {/* Desktop: horizontal pill layout */}
       <div className="hidden lg:flex items-center gap-2 mt-1">
-        <ContactLink href={contact.resumePath} label="Resume" testId="contact-resume" />
+        <ContactLink href={contact.resumePath} label="Resume" download="Sulagna Dey - Data Analyst - Power BI Certified - Resume.pdf" testId="contact-resume" />
         <ContactLink
           href={contact.linkedin}
           label="LinkedIn"
@@ -97,7 +99,7 @@ export function ContactTile({ className = '' }: ContactTileProps) {
 
       {/* Mobile: stacked grid layout */}
       <div className="grid grid-cols-2 gap-2 mt-1 lg:hidden">
-        <ContactLink href={contact.resumePath} label="Resume" testId="contact-resume-mobile" />
+        <ContactLink href={contact.resumePath} label="Resume" download="Sulagna Dey - Data Analyst - Power BI Certified - Resume.pdf" testId="contact-resume-mobile" />
         <ContactLink
           href={contact.linkedin}
           label="LinkedIn"

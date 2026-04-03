@@ -33,17 +33,23 @@ const pressStart2P = Press_Start_2P({
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://sulagna.dev'),
-  title: { default: 'Sulagna Dey — Data Analyst & Power BI Specialist', template: '%s | Sulagna Dey' },
-  description: 'Sulagna Dey — Data Analyst, Market Analyst & Power BI Specialist. Interactive portfolio showcasing aluminium market intelligence, data visualization dashboards, and automation expertise.',
+  title: { default: 'Sulagna Dey — Data Analyst, Power BI Specialist & Market Intelligence', template: '%s | Sulagna Dey' },
+  description: 'Sulagna Dey is a data analyst and Power BI specialist at AlCircle, building aluminium market intelligence dashboards, automating 500+ data pipelines, and writing about data visualization, Python, SQL, and machine learning. PL-300 Certified. Gold Medalist.',
+  keywords: ['data analyst', 'Power BI', 'data visualization', 'market intelligence', 'aluminium market', 'DAX', 'Python', 'SQL', 'machine learning', 'data automation', 'Sulagna Dey'],
+  authors: [{ name: 'Sulagna Dey', url: 'https://sulagna.dev' }],
+  creator: 'Sulagna Dey',
   openGraph: {
     type: 'website',
     locale: 'en_US',
     url: 'https://sulagna.dev',
-    siteName: 'Sulagna Dey',
-    images: [{ url: '/og', width: 1200, height: 630 }],
+    siteName: 'Sulagna Dey — Data Analyst & Power BI Specialist',
+    title: 'Sulagna Dey — Data Analyst, Power BI Specialist & Market Intelligence',
+    description: 'Data analyst building aluminium market intelligence dashboards. PL-300 Certified. Writing about Power BI, data visualization, Python, and machine learning.',
+    images: [{ url: '/og', width: 1200, height: 630, alt: 'Sulagna Dey — Data Analyst & Power BI Specialist' }],
   },
-  twitter: { card: 'summary_large_image' },
-  alternates: { canonical: 'https://sulagna.dev' },
+  twitter: { card: 'summary_large_image', creator: '@sulagnadey', title: 'Sulagna Dey — Data Analyst & Power BI Specialist', description: 'Data analyst building market intelligence dashboards. PL-300 Certified.', images: ['/og'] },
+  alternates: { canonical: 'https://sulagna.dev', types: { 'application/rss+xml': [{ url: '/blog/feed.xml', title: 'Sulagna Dey — Data Science Insights RSS Feed' }] } },
+  robots: { index: true, follow: true, googleBot: { index: true, follow: true, 'max-image-preview': 'large', 'max-snippet': -1 } },
 };
 
 export default function RootLayout({
