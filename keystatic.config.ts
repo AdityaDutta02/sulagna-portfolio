@@ -64,7 +64,7 @@ export default config({
 
         tags: fields.array(
           fields.text({ label: 'Tag' }),
-          { label: 'Tags', itemLabel: (props) => props.fields.value.value },
+          { label: 'Tags' },
         ),
 
         excerpt: fields.text({
