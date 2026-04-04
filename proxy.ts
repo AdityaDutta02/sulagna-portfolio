@@ -18,7 +18,9 @@ export function proxy(request: NextRequest): NextResponse {
 
   // Fail closed: reject if env vars missing or session invalid
   if (!password || !secret || !verifySession(sessionCookie, password, secret)) {
-    return NextResponse.redirect(new URL('/admin/login', request.url));
+    const loginUrl = new URL('/admin/login', request.url);
+    loginUrl.searchParams.set('from', pathname);
+    return NextResponse.redirect(loginUrl);
   }
   return NextResponse.next();
 }

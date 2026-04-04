@@ -1,13 +1,15 @@
 'use client';
 
-import React, { useState, type FormEvent } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, type FormEvent, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 
-export default function AdminLogin(): React.JSX.Element {
+function AdminLoginForm(): React.JSX.Element {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const from = searchParams.get('from') ?? '/admin/inbox';
 
   async function handleSubmit(e: FormEvent): Promise<void> {
     e.preventDefault();
@@ -21,7 +23,7 @@ export default function AdminLogin(): React.JSX.Element {
     });
 
     if (res.ok) {
-      router.push('/admin/inbox');
+      router.push(from);
     } else {
       setError('Invalid password');
       setLoading(false);
@@ -109,5 +111,13 @@ export default function AdminLogin(): React.JSX.Element {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function AdminLogin(): React.JSX.Element {
+  return (
+    <Suspense>
+      <AdminLoginForm />
+    </Suspense>
   );
 }
