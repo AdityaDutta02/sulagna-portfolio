@@ -29,7 +29,7 @@ export function AuthorCard() {
         </div>
         <div className="flex gap-4 mt-2">
           <Link
-            href="https://linkedin.com/in/sulagna-dey"
+            href="https://www.linkedin.com/in/sulagna-dey-343703258/"
             target="_blank"
             rel="noopener noreferrer"
             className="text-[10px] font-semibold no-underline hover:underline"

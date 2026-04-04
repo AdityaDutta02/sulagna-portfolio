@@ -35,11 +35,13 @@ export function PostLayout({ children }: PostLayoutProps) {
         </div>
         <a
           href="/blog/feed.xml"
+          target="_blank"
+          rel="noopener noreferrer"
           className="text-[10px] no-underline transition-colors hover:text-[var(--amber)]"
           style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-dim)' }}
-          title="RSS Feed"
+          title="Subscribe via RSS"
         >
-          RSS
+          RSS ↗
         </a>
       </nav>
 

@@ -13,7 +13,7 @@ export default function Coffee() {
       className="hidden md:flex"
       style={{
         position: "fixed",
-        bottom: 56,
+        bottom: 110,
         left: 28,
         flexDirection: "column",
         alignItems: "center",

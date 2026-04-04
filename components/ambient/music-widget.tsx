@@ -1,12 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { Howl } from "howler";
-
-// ── Constants ────────────────────────────────────────────────────────────────
 
 const TRACK = { name: "midnight data", artist: "lofi bytes" };
-const AUDIO_SRC = "/audio/lofi-track-01.mp3";
 
 // EQ bar configs for collapsed pill (5 bars)
 const PILL_BARS = [
@@ -33,6 +29,62 @@ const PLAYER_BARS = [
   { h: 8, sp: "0.85s" },
 ];
 
+// ── Web Audio ambient generator ──────────────────────────────────────────────
+
+function createAmbientSound(ctx: AudioContext): AudioNode {
+  // Brown noise via filtered white noise
+  const bufferSize = ctx.sampleRate * 2;
+  const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+  let lastOut = 0;
+  for (let i = 0; i < bufferSize; i++) {
+    const white = Math.random() * 2 - 1;
+    lastOut = (lastOut + 0.02 * white) / 1.02;
+    data[i] = lastOut * 3.5;
+  }
+  const noiseSource = ctx.createBufferSource();
+  noiseSource.buffer = buffer;
+  noiseSource.loop = true;
+
+  const noiseGain = ctx.createGain();
+  noiseGain.gain.value = 0.06;
+
+  const lowpass = ctx.createBiquadFilter();
+  lowpass.type = "lowpass";
+  lowpass.frequency.value = 400;
+
+  noiseSource.connect(lowpass);
+  lowpass.connect(noiseGain);
+
+  // Gentle sine tones for warmth
+  const toneFreqs = [55, 110, 165];
+  const toneNodes: OscillatorNode[] = [];
+  for (const freq of toneFreqs) {
+    const osc = ctx.createOscillator();
+    osc.type = "sine";
+    osc.frequency.value = freq;
+    const g = ctx.createGain();
+    g.gain.value = 0.012;
+    osc.connect(g);
+    g.connect(ctx.destination);
+    osc.start();
+    toneNodes.push(osc);
+  }
+
+  const master = ctx.createGain();
+  master.gain.value = 0.7;
+  noiseGain.connect(master);
+
+  noiseSource.start();
+
+  // Return master so caller can connect to destination; attach cleanup
+  (master as unknown as { _sources: (AudioBufferSourceNode | OscillatorNode)[] })._sources = [
+    noiseSource,
+    ...toneNodes,
+  ];
+  return master;
+}
+
 // ── Sub-components ───────────────────────────────────────────────────────────
 
 interface EqBarsProps {
@@ -45,15 +97,7 @@ interface EqBarsProps {
 
 function EqBars({ bars, playing, gap = 2, barWidth = 3, opacity = 1 }: EqBarsProps) {
   return (
-    <div
-      aria-hidden="true"
-      style={{
-        display: "flex",
-        alignItems: "flex-end",
-        gap,
-        opacity,
-      }}
-    >
+    <div aria-hidden="true" style={{ display: "flex", alignItems: "flex-end", gap, opacity }}>
       {bars.map((bar, i) => (
         <div
           key={i}
@@ -75,10 +119,7 @@ function EqBars({ bars, playing, gap = 2, barWidth = 3, opacity = 1 }: EqBarsPro
   );
 }
 
-interface VinylProps {
-  size: number;
-  spinning: boolean;
-}
+interface VinylProps { size: number; spinning: boolean }
 
 function Vinyl({ size, spinning }: VinylProps) {
   return (
@@ -98,7 +139,6 @@ function Vinyl({ size, spinning }: VinylProps) {
         boxShadow: "0 2px 8px rgba(0,0,0,0.25)",
       }}
     >
-      {/* Label dot */}
       <div
         style={{
           position: "absolute",
@@ -117,92 +157,68 @@ function Vinyl({ size, spinning }: VinylProps) {
 export default function MusicWidget() {
   const [expanded, setExpanded] = useState(false);
   const [playing, setPlaying] = useState(false);
-  const howlRef = useRef<Howl | null>(null);
+  const ctxRef = useRef<AudioContext | null>(null);
+  const masterRef = useRef<(AudioNode & { _sources?: (AudioBufferSourceNode | OscillatorNode)[] }) | null>(null);
 
-  // Lazy-load Howler only when the user first presses play
-  const getOrCreateHowl = useCallback(async (): Promise<Howl | null> => {
-    if (howlRef.current) return howlRef.current;
-
-    try {
-      const { Howl: HowlClass } = await import("howler");
-      const sound = new HowlClass({
-        src: [AUDIO_SRC],
-        loop: true,
-        html5: true,
-        volume: 0.6,
-        onloaderror: () => {
-          // Audio file missing — silently degrade; visual state still toggles
-        },
-      });
-      howlRef.current = sound;
-      return sound;
-    } catch {
-      return null;
+  const startPlayback = useCallback(async () => {
+    if (!ctxRef.current) {
+      ctxRef.current = new AudioContext();
     }
+    const ctx = ctxRef.current;
+    if (ctx.state === "suspended") await ctx.resume();
+    if (!masterRef.current) {
+      masterRef.current = createAmbientSound(ctx) as AudioNode & {
+        _sources?: (AudioBufferSourceNode | OscillatorNode)[];
+      };
+      masterRef.current.connect(ctx.destination);
+    }
+    setPlaying(true);
+  }, []);
+
+  const stopPlayback = useCallback(() => {
+    if (ctxRef.current) {
+      ctxRef.current.suspend();
+    }
+    setPlaying(false);
   }, []);
 
   const handlePlayPause = useCallback(async () => {
-    const sound = await getOrCreateHowl();
-
-    if (!sound) {
-      // No audio available — just toggle visual state
-      setPlaying((prev) => !prev);
-      return;
-    }
-
     if (playing) {
-      sound.pause();
-      setPlaying(false);
+      stopPlayback();
     } else {
-      sound.play();
-      setPlaying(true);
+      await startPlayback();
     }
-  }, [playing, getOrCreateHowl]);
+  }, [playing, startPlayback, stopPlayback]);
 
-  // Stub prev/next — single track for now
-  const handlePrev = useCallback(() => {
-    if (howlRef.current) {
-      howlRef.current.seek(0);
+  const handleSeekStart = useCallback(async () => {
+    if (masterRef.current) {
+      masterRef.current._sources?.forEach((s) => {
+        try { s.stop(); } catch { /* already stopped */ }
+      });
+      masterRef.current.disconnect();
+      masterRef.current = null;
     }
-  }, []);
+    if (playing) await startPlayback();
+  }, [playing, startPlayback]);
 
-  const handleNext = useCallback(() => {
-    if (howlRef.current) {
-      howlRef.current.seek(0);
-    }
-  }, []);
-
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
-      if (howlRef.current) {
-        howlRef.current.unload();
-      }
+      ctxRef.current?.close();
     };
   }, []);
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        bottom: 20,
-        right: 20,
-        zIndex: 20,
-      }}
-    >
+    <div style={{ position: "fixed", bottom: 20, right: 20, zIndex: 20 }}>
       {expanded ? (
         <ExpandedPlayer
           playing={playing}
           onPlayPause={handlePlayPause}
-          onPrev={handlePrev}
-          onNext={handleNext}
+          onPrev={handleSeekStart}
+          onNext={handleSeekStart}
           onMinimize={() => setExpanded(false)}
         />
       ) : (
-        <CollapsedPill
-          playing={playing}
-          onClick={() => setExpanded(true)}
-        />
+        <CollapsedPill playing={playing} onClick={() => setExpanded(true)} />
       )}
     </div>
   );
@@ -210,10 +226,7 @@ export default function MusicWidget() {
 
 // ── Collapsed pill ───────────────────────────────────────────────────────────
 
-interface CollapsedPillProps {
-  playing: boolean;
-  onClick: () => void;
-}
+interface CollapsedPillProps { playing: boolean; onClick: () => void }
 
 function CollapsedPill({ playing, onClick }: CollapsedPillProps) {
   return (
@@ -237,32 +250,14 @@ function CollapsedPill({ playing, onClick }: CollapsedPillProps) {
       }}
     >
       <Vinyl size={28} spinning={playing} />
-
       <div style={{ flex: 1, minWidth: 0, textAlign: "left" }}>
-        <div
-          style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: 9,
-            fontWeight: 600,
-            color: "var(--text)",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
-          }}
-        >
+        <div style={{ fontFamily: "var(--font-mono)", fontSize: 9, fontWeight: 600, color: "var(--text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
           {TRACK.name}
         </div>
-        <div
-          style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: 8,
-            color: "var(--text-dim)",
-          }}
-        >
+        <div style={{ fontFamily: "var(--font-mono)", fontSize: 8, color: "var(--text-dim)" }}>
           {TRACK.artist}
         </div>
       </div>
-
       <EqBars bars={PILL_BARS} playing={playing} gap={1} barWidth={2} opacity={0.7} />
     </button>
   );
@@ -278,133 +273,41 @@ interface ExpandedPlayerProps {
   onMinimize: () => void;
 }
 
-function ExpandedPlayer({
-  playing,
-  onPlayPause,
-  onPrev,
-  onNext,
-  onMinimize,
-}: ExpandedPlayerProps) {
+function ExpandedPlayer({ playing, onPlayPause, onPrev, onNext, onMinimize }: ExpandedPlayerProps) {
   return (
     <div
       data-testid="music-expanded"
-      style={{
-        width: 260,
-        background: "var(--bg-card)",
-        border: "1px solid var(--border)",
-        borderRadius: 14,
-        boxShadow: "0 4px 20px rgba(0,0,0,0.10)",
-        overflow: "hidden",
-      }}
+      style={{ width: 260, background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: 14, boxShadow: "0 4px 20px rgba(0,0,0,0.10)", overflow: "hidden" }}
     >
-      {/* Header */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "10px 14px 8px",
-          borderBottom: "1px solid var(--border)",
-        }}
-      >
-        <span
-          style={{
-            fontFamily: "var(--font-pixel)",
-            fontSize: 7,
-            color: "var(--text-dim)",
-            letterSpacing: "0.08em",
-          }}
-        >
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px 8px", borderBottom: "1px solid var(--border)" }}>
+        <span style={{ fontFamily: "var(--font-pixel)", fontSize: 7, color: "var(--text-dim)", letterSpacing: "0.08em" }}>
           ♫ lofi.radio
         </span>
-        <button
-          onClick={onMinimize}
-          data-testid="music-minimize"
-          aria-label="Minimize music player"
-          style={{
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-            color: "var(--text-dim)",
-            fontSize: 14,
-            lineHeight: 1,
-            padding: "2px 4px",
-          }}
-        >
+        <button onClick={onMinimize} data-testid="music-minimize" aria-label="Minimize music player" style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-dim)", fontSize: 14, lineHeight: 1, padding: "2px 4px" }}>
           −
         </button>
       </div>
-
-      {/* Body */}
       <div style={{ padding: "16px 14px 14px" }}>
-        {/* Vinyl + track info */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 12,
-            marginBottom: 14,
-          }}
-        >
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
           <Vinyl size={52} spinning={playing} />
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div
-              style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: 11,
-                fontWeight: 600,
-                color: "var(--text)",
-                marginBottom: 3,
-              }}
-            >
+            <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 600, color: "var(--text)", marginBottom: 3 }}>
               {TRACK.name}
             </div>
-            <div
-              style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: 9,
-                color: "var(--text-dim)",
-              }}
-            >
+            <div style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--text-dim)" }}>
               {TRACK.artist}
             </div>
           </div>
         </div>
-
-        {/* EQ bars */}
         <div style={{ marginBottom: 14 }}>
-          <EqBars
-            bars={PLAYER_BARS}
-            playing={playing}
-            gap={3}
-            barWidth={3}
-            opacity={0.6}
-          />
+          <EqBars bars={PLAYER_BARS} playing={playing} gap={3} barWidth={3} opacity={0.6} />
         </div>
-
-        {/* Controls */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 16,
-          }}
-        >
-          <ControlButton onClick={onPrev} label="Previous track" size={28}>
-            ⏮
-          </ControlButton>
-          <ControlButton
-            onClick={onPlayPause}
-            label={playing ? "Pause" : "Play"}
-            size={36}
-            primary
-          >
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 16 }}>
+          <ControlButton onClick={onPrev} label="Restart" size={28}>⏮</ControlButton>
+          <ControlButton onClick={onPlayPause} label={playing ? "Pause" : "Play"} size={36} primary>
             {playing ? "⏸" : "▶"}
           </ControlButton>
-          <ControlButton onClick={onNext} label="Next track" size={28}>
-            ⏭
-          </ControlButton>
+          <ControlButton onClick={onNext} label="Restart" size={28}>⏭</ControlButton>
         </div>
       </div>
     </div>

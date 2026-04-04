@@ -10,7 +10,7 @@ export function NewsletterCta() {
         I write about Power BI, Python automation, and market intelligence. Connect on LinkedIn for the latest posts.
       </div>
       <Link
-        href="https://linkedin.com/in/sulagna-dey"
+        href="https://www.linkedin.com/in/sulagna-dey-343703258/"
         target="_blank"
         rel="noopener noreferrer"
         className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold no-underline transition-all"
