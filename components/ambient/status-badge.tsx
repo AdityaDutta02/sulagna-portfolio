@@ -6,8 +6,8 @@ export default function StatusBadge() {
       className="hidden md:flex"
       style={{
         position: "fixed",
-        bottom: 24,
-        left: 28,
+        bottom: 20,
+        left: 24,
         alignItems: "center",
         gap: 6,
         zIndex: 50,

@@ -12,7 +12,15 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: 'date (YYYY-MM-DD) required' }, { status: 400 });
   }
 
-  const raw = (await getRedis().hgetall<Record<string, TrackedItem | string>>(`items:${date}`)) ?? {};
+  let raw: Record<string, TrackedItem | string>;
+  try {
+    raw = (await getRedis().hgetall<Record<string, TrackedItem | string>>(`items:${date}`)) ?? {};
+  } catch {
+    return NextResponse.json(
+      { error: 'Redis not configured. Set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN in environment variables.' },
+      { status: 503 }
+    );
+  }
   const items: TrackedItem[] = [];
   for (const val of Object.values(raw)) {
     if (!val) continue;
@@ -41,7 +49,12 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: 'itemId, date, draft required' }, { status: 400 });
   }
 
-  const raw = await getRedis().hget<TrackedItem | string>(`items:${date}`, itemId);
+  let raw: TrackedItem | string | null;
+  try {
+    raw = await getRedis().hget<TrackedItem | string>(`items:${date}`, itemId);
+  } catch {
+    return NextResponse.json({ error: 'Redis not configured' }, { status: 503 });
+  }
   if (!raw) return NextResponse.json({ error: 'Item not found' }, { status: 404 });
 
   const item: TrackedItem = typeof raw === 'string' ? JSON.parse(raw) as TrackedItem : raw;
