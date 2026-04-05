@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Warm cream background matching --bg token -->
+  <rect width="32" height="32" rx="5" fill="#f6f5f1" stroke="#e2e0db" stroke-width="1"/>
+  <!-- Three ascending bars using amber brand tokens, bottom-aligned at y=29 -->
+  <rect x="4"  y="21" width="6" height="8"  rx="1.5" fill="#c8973e"/>
+  <rect x="13" y="15" width="6" height="14" rx="1.5" fill="#a27a2e"/>
+  <rect x="22" y="8"  width="6" height="21" rx="1.5" fill="#7d5e1f"/>
+</svg>
