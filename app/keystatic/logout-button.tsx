@@ -11,7 +11,7 @@ export default function LogoutButton() {
       onClick={handleLogout}
       style={{
         position: 'fixed',
-        top: 12,
+        bottom: 16,
         right: 16,
         zIndex: 100,
         padding: '5px 12px',

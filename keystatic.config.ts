@@ -1,12 +1,14 @@
 import { config, collection, fields } from '@keystatic/core';
 
+// NODE_ENV is replaced at build time in both server and client bundles,
+// so this correctly switches storage mode for the client-side Keystatic UI.
 const storage =
-  process.env.KEYSTATIC_GITHUB_CLIENT_ID
+  process.env.NODE_ENV === 'production'
     ? ({
         kind: 'github' as const,
         repo: {
-          owner: process.env.GITHUB_REPO_OWNER as string,
-          name: process.env.GITHUB_REPO_NAME as string,
+          owner: 'AdityaDutta02',
+          name: 'sulagna-portfolio',
         },
       })
     : ({ kind: 'local' as const });
