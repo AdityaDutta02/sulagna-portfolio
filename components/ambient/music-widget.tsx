@@ -2,7 +2,33 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-const TRACK = { name: "midnight data", artist: "lofi bytes" };
+const TRACKS = [
+  {
+    name: "hanging lanterns",
+    artist: "kalaido",
+    src: "https://archive.org/download/kalaido-hanging-lanterns_202101/Kalaido%20-%20Hanging%20Lanterns.mp3",
+  },
+  {
+    name: "first snow",
+    artist: "kerusu",
+    src: "https://archive.org/download/kalaido-hanging-lanterns_202101/Kerusu%20-%20First%20Snow.mp3",
+  },
+  {
+    name: "car radio",
+    artist: "flovry",
+    src: "https://archive.org/download/kalaido-hanging-lanterns_202101/flovry%20-%20car%20radio.mp3",
+  },
+  {
+    name: "waves",
+    artist: "matt quentin",
+    src: "https://archive.org/download/kalaido-hanging-lanterns_202101/Matt%20Quentin%20-%20Waves.mp3",
+  },
+  {
+    name: "rain beat",
+    artist: "lofi type beat",
+    src: "https://archive.org/download/kalaido-hanging-lanterns_202101/(FREE)%20Lo-fi%20Type%20Beat%20-%20Rain.mp3",
+  },
+];
 
 // EQ bar configs for collapsed pill (5 bars)
 const PILL_BARS = [
@@ -28,62 +54,6 @@ const PLAYER_BARS = [
   { h: 16, sp: "1.15s" },
   { h: 8, sp: "0.85s" },
 ];
-
-// ── Web Audio ambient generator ──────────────────────────────────────────────
-
-function createAmbientSound(ctx: AudioContext): AudioNode {
-  // Brown noise via filtered white noise
-  const bufferSize = ctx.sampleRate * 2;
-  const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-  const data = buffer.getChannelData(0);
-  let lastOut = 0;
-  for (let i = 0; i < bufferSize; i++) {
-    const white = Math.random() * 2 - 1;
-    lastOut = (lastOut + 0.02 * white) / 1.02;
-    data[i] = lastOut * 3.5;
-  }
-  const noiseSource = ctx.createBufferSource();
-  noiseSource.buffer = buffer;
-  noiseSource.loop = true;
-
-  const noiseGain = ctx.createGain();
-  noiseGain.gain.value = 0.06;
-
-  const lowpass = ctx.createBiquadFilter();
-  lowpass.type = "lowpass";
-  lowpass.frequency.value = 400;
-
-  noiseSource.connect(lowpass);
-  lowpass.connect(noiseGain);
-
-  // Gentle sine tones for warmth
-  const toneFreqs = [55, 110, 165];
-  const toneNodes: OscillatorNode[] = [];
-  for (const freq of toneFreqs) {
-    const osc = ctx.createOscillator();
-    osc.type = "sine";
-    osc.frequency.value = freq;
-    const g = ctx.createGain();
-    g.gain.value = 0.012;
-    osc.connect(g);
-    g.connect(ctx.destination);
-    osc.start();
-    toneNodes.push(osc);
-  }
-
-  const master = ctx.createGain();
-  master.gain.value = 0.7;
-  noiseGain.connect(master);
-
-  noiseSource.start();
-
-  // Return master so caller can connect to destination; attach cleanup
-  (master as unknown as { _sources: (AudioBufferSourceNode | OscillatorNode)[] })._sources = [
-    noiseSource,
-    ...toneNodes,
-  ];
-  return master;
-}
 
 // ── Sub-components ───────────────────────────────────────────────────────────
 
@@ -157,54 +127,70 @@ function Vinyl({ size, spinning }: VinylProps) {
 export default function MusicWidget() {
   const [expanded, setExpanded] = useState(false);
   const [playing, setPlaying] = useState(false);
-  const ctxRef = useRef<AudioContext | null>(null);
-  const masterRef = useRef<(AudioNode & { _sources?: (AudioBufferSourceNode | OscillatorNode)[] }) | null>(null);
+  const [trackIdx, setTrackIdx] = useState(0);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  // Tracks intended play state across async gaps
+  const shouldPlayRef = useRef(false);
 
-  const startPlayback = useCallback(async () => {
-    if (!ctxRef.current) {
-      ctxRef.current = new AudioContext();
-    }
-    const ctx = ctxRef.current;
-    if (ctx.state === "suspended") await ctx.resume();
-    if (!masterRef.current) {
-      masterRef.current = createAmbientSound(ctx) as AudioNode & {
-        _sources?: (AudioBufferSourceNode | OscillatorNode)[];
-      };
-      masterRef.current.connect(ctx.destination);
-    }
-    setPlaying(true);
+  const track = TRACKS[trackIdx];
+
+  // Initialise audio element once
+  useEffect(() => {
+    const audio = new Audio();
+    audio.preload = "none";
+    audioRef.current = audio;
+
+    const handleEnded = () => {
+      setTrackIdx((i) => (i + 1) % TRACKS.length);
+    };
+    audio.addEventListener("ended", handleEnded);
+
+    return () => {
+      audio.removeEventListener("ended", handleEnded);
+      audio.pause();
+      audio.src = "";
+    };
   }, []);
 
-  const stopPlayback = useCallback(() => {
-    if (ctxRef.current) {
-      ctxRef.current.suspend();
+  // Swap src whenever track changes; resume playback if we were playing
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    audio.src = TRACKS[trackIdx].src;
+    audio.load();
+    if (shouldPlayRef.current) {
+      audio.play().catch(() => {
+        shouldPlayRef.current = false;
+        setPlaying(false);
+      });
     }
-    setPlaying(false);
-  }, []);
+  }, [trackIdx]);
 
   const handlePlayPause = useCallback(async () => {
+    const audio = audioRef.current;
+    if (!audio) return;
     if (playing) {
-      stopPlayback();
+      audio.pause();
+      shouldPlayRef.current = false;
+      setPlaying(false);
     } else {
-      await startPlayback();
+      try {
+        await audio.play();
+        shouldPlayRef.current = true;
+        setPlaying(true);
+      } catch {
+        shouldPlayRef.current = false;
+        setPlaying(false);
+      }
     }
-  }, [playing, startPlayback, stopPlayback]);
+  }, [playing]);
 
-  const handleSeekStart = useCallback(async () => {
-    if (masterRef.current) {
-      masterRef.current._sources?.forEach((s) => {
-        try { s.stop(); } catch { /* already stopped */ }
-      });
-      masterRef.current.disconnect();
-      masterRef.current = null;
-    }
-    if (playing) await startPlayback();
-  }, [playing, startPlayback]);
+  const handleNext = useCallback(() => {
+    setTrackIdx((i) => (i + 1) % TRACKS.length);
+  }, []);
 
-  useEffect(() => {
-    return () => {
-      ctxRef.current?.close();
-    };
+  const handlePrev = useCallback(() => {
+    setTrackIdx((i) => (i - 1 + TRACKS.length) % TRACKS.length);
   }, []);
 
   return (
@@ -212,13 +198,13 @@ export default function MusicWidget() {
       {expanded ? (
         <ExpandedPlayer
           playing={playing}
+          track={track}
           onPlayPause={handlePlayPause}
-          onPrev={handleSeekStart}
-          onNext={handleSeekStart}
+          onTrack={(dir) => (dir === "next" ? handleNext() : handlePrev())}
           onMinimize={() => setExpanded(false)}
         />
       ) : (
-        <CollapsedPill playing={playing} onClick={() => setExpanded(true)} />
+        <CollapsedPill playing={playing} track={track} onClick={() => setExpanded(true)} />
       )}
     </div>
   );
@@ -226,9 +212,13 @@ export default function MusicWidget() {
 
 // ── Collapsed pill ───────────────────────────────────────────────────────────
 
-interface CollapsedPillProps { playing: boolean; onClick: () => void }
+interface CollapsedPillProps {
+  playing: boolean;
+  track: { name: string; artist: string };
+  onClick: () => void;
+}
 
-function CollapsedPill({ playing, onClick }: CollapsedPillProps) {
+function CollapsedPill({ playing, track, onClick }: CollapsedPillProps) {
   return (
     <button
       onClick={onClick}
@@ -252,10 +242,10 @@ function CollapsedPill({ playing, onClick }: CollapsedPillProps) {
       <Vinyl size={28} spinning={playing} />
       <div style={{ flex: 1, minWidth: 0, textAlign: "left" }}>
         <div style={{ fontFamily: "var(--font-mono)", fontSize: 9, fontWeight: 600, color: "var(--text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-          {TRACK.name}
+          {track.name}
         </div>
         <div style={{ fontFamily: "var(--font-mono)", fontSize: 8, color: "var(--text-dim)" }}>
-          {TRACK.artist}
+          {track.artist}
         </div>
       </div>
       <EqBars bars={PILL_BARS} playing={playing} gap={1} barWidth={2} opacity={0.7} />
@@ -267,13 +257,13 @@ function CollapsedPill({ playing, onClick }: CollapsedPillProps) {
 
 interface ExpandedPlayerProps {
   playing: boolean;
+  track: { name: string; artist: string };
   onPlayPause: () => void;
-  onPrev: () => void;
-  onNext: () => void;
+  onTrack: (dir: "prev" | "next") => void;
   onMinimize: () => void;
 }
 
-function ExpandedPlayer({ playing, onPlayPause, onPrev, onNext, onMinimize }: ExpandedPlayerProps) {
+function ExpandedPlayer({ playing, track, onPlayPause, onTrack, onMinimize }: ExpandedPlayerProps) {
   return (
     <div
       data-testid="music-expanded"
@@ -292,10 +282,10 @@ function ExpandedPlayer({ playing, onPlayPause, onPrev, onNext, onMinimize }: Ex
           <Vinyl size={52} spinning={playing} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 600, color: "var(--text)", marginBottom: 3 }}>
-              {TRACK.name}
+              {track.name}
             </div>
             <div style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--text-dim)" }}>
-              {TRACK.artist}
+              {track.artist}
             </div>
           </div>
         </div>
@@ -303,11 +293,11 @@ function ExpandedPlayer({ playing, onPlayPause, onPrev, onNext, onMinimize }: Ex
           <EqBars bars={PLAYER_BARS} playing={playing} gap={3} barWidth={3} opacity={0.6} />
         </div>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 16 }}>
-          <ControlButton onClick={onPrev} label="Restart" size={28}>⏮</ControlButton>
+          <ControlButton onClick={() => onTrack("prev")} label="Previous track" size={28}>⏮</ControlButton>
           <ControlButton onClick={onPlayPause} label={playing ? "Pause" : "Play"} size={36} primary>
             {playing ? "⏸" : "▶"}
           </ControlButton>
-          <ControlButton onClick={onNext} label="Restart" size={28}>⏭</ControlButton>
+          <ControlButton onClick={() => onTrack("next")} label="Next track" size={28}>⏭</ControlButton>
         </div>
       </div>
     </div>
