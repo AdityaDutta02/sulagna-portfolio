@@ -5,12 +5,9 @@ import "./globals.css";
 import { DrillProvider } from "@/components/drill-through/drill-context";
 import { DrillPanel } from "@/components/drill-through/panel";
 import ExcelGrid from "@/components/ambient/excel-grid";
-import StatusBadge from "@/components/ambient/status-badge";
-import Clock from "@/components/ambient/clock";
-import Coffee from "@/components/ambient/coffee";
-import MiniChart from "@/components/ambient/mini-chart";
 import Particles from "@/components/ambient/particles";
 import MusicWidget from "@/components/ambient/music-widget";
+import AmbientGuard from "@/components/ambient/ambient-guard";
 
 const dmSans = DM_Sans({
   variable: "--font-body",
@@ -68,14 +65,11 @@ export default function RootLayout({
           <DrillPanel />
         </DrillProvider>
 
-        {/* ── Ambient decorations (rendered on every page) ── */}
+        {/* ── Ambient decorations ── */}
         <ExcelGrid />
         <Particles />
-        <Coffee />
-        <Clock />
-        <MiniChart />
+        <AmbientGuard />
         <MusicWidget />
-        <StatusBadge />
       </body>
     </html>
   );

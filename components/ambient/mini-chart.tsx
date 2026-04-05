@@ -19,7 +19,7 @@ export default function MiniChart() {
       style={{
         position: "fixed",
         bottom: 24,
-        left: 80,
+        left: 190,
         alignItems: "flex-end",
         gap: 2,
         zIndex: 50,

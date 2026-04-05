@@ -25,4 +25,4 @@ export function proxy(request: NextRequest): NextResponse {
   return NextResponse.next();
 }
 
-export const config = { matcher: ['/admin/:path*', '/keystatic/:path*'] };
+export const proxyConfig = { matcher: ['/admin/:path*', '/keystatic/:path*'] };
