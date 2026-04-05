@@ -1,3 +1,5 @@
-export default function KeystaticPage() {
-  return null;
-}
+'use client';
+
+import KeystaticApp from '../keystatic';
+
+export default KeystaticApp;
